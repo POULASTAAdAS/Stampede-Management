@@ -72,9 +72,20 @@
 
 ---
 
-## <h2  align='center'>📜 License</h2>
+## <h2  align='center'>📜 Developers</h2>
 
-Designed and developed by Poulastaa Das.
+Designed and developed by:
+
+1. [Poulastaa Das](https://www.linkedin.com/in/poulastaa-das-7a5332235/?originalSubdomain=in)
+2. [Shreya Chakraborty](https://www.linkedin.com/in/rohan-wadadar-98439934a/)
+3. [Rohan Waddader](https://www.linkedin.com/in/rohan-wadadar-98439934a/)
+4. Payal Ghosh
+
+Under Supervision of:  [**Subhasis Choudhury**](https://www.linkedin.com/in/subhasis-chowdhury-026418177/?originalSubdomain=in)
+
+---
+
+## <h2  align='center'>📜 License</h2>
 
     ```xml
         Licensed under the Apache License, Version 2.0 (the "License");
