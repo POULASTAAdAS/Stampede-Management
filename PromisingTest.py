@@ -44,9 +44,10 @@ class MonitoringConfig:
     model_path: str = "yolov8n.pt"
 
     # Grid and spatial settings
-    cell_width: float = 1.0
-    cell_height: float = 1.0
-    person_radius: float = 0.3  # TODO manage number of people
+    cell_width: float = 10.0
+    cell_height: float = 10.0
+    person_radius: float = 0.06  # TODO manage number of people
+    person_threshold: int = -1
 
     # Detection settings
     detect_every: int = 5
@@ -696,10 +697,13 @@ class EnhancedCrowdMonitor:
         self.grid_cols = int(math.ceil(world_width / self.config.cell_width))
         self.grid_rows = int(math.ceil(world_height / self.config.cell_height))
 
-        # Calculate cell capacity based on person radius
-        person_area = math.pi * self.config.person_radius ** 2
-        cell_area = self.config.cell_width * self.config.cell_height
-        self.cell_capacity = max(1, int(cell_area / person_area))
+        # Calculate cell capacity based on person radius OR use threshold
+        if self.config.person_threshold > 0:  # ADD THIS BLOCK
+            self.cell_capacity = self.config.person_threshold
+        else:
+            person_area = math.pi * self.config.person_radius ** 2
+            cell_area = self.config.cell_width * self.config.cell_height
+            self.cell_capacity = max(1, int(cell_area / person_area))
 
         # Initialize runtime state arrays
         self.ema_counts = np.zeros((self.grid_rows, self.grid_cols), dtype=np.float32)
@@ -1385,6 +1389,8 @@ def parse_arguments() -> MonitoringConfig:
                         help="Grid cell height in meters")
     parser.add_argument("--person-radius", type=float, default=0.6,
                         help="Person radius for capacity calculation (meters)")
+    parser.add_argument("--person-threshold", type=int, default=1,
+                        help="Override capacity calculation, alert when more than N people per cell")
 
     # Detection parameters
     parser.add_argument("--detect-every", type=int, default=3,
@@ -1425,6 +1431,7 @@ def parse_arguments() -> MonitoringConfig:
         cell_width=args.cell_width,
         cell_height=args.cell_height,
         person_radius=args.person_radius,
+        person_threshold=args.person_threshold,
         detect_every=args.detect_every,
         confidence_threshold=args.conf,
         min_bbox_area=args.min_bbox_area,
