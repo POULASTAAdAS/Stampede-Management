@@ -1,0 +1,10 @@
+# Enhanced Crowd Monitoring System Dependencies
+
+# Core dependencies
+opencv-python>=4.8.0
+numpy>=1.24.0
+ultralytics>=8.0.0
+shapely>=2.0.0
+
+# Optional: For DeepSort tracking (uncomment if needed)
+# deep-sort-realtime>=1.3.0

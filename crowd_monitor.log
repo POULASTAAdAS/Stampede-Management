@@ -1,0 +1,708 @@
+2025-10-16 14:05:33,623 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:05:33,623 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:05:33,625 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:05:33,625 - INFO - Video source: 0
+2025-10-16 14:05:33,625 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:05:33,625 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:05:33,625 - INFO - Person radius: 0.6m
+2025-10-16 14:05:33,625 - INFO - Using tracker: Centroid
+2025-10-16 14:05:33,625 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:05:33,625 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:05:33,626 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:05:33,626 - INFO - Downloading YOLO model: yolov8n.pt
+2025-10-16 14:05:59,076 - INFO - Model yolov8n.pt downloaded successfully
+2025-10-16 14:05:59,098 - INFO - YOLO model loaded successfully
+2025-10-16 14:05:59,098 - INFO - Trying primary camera source: 0
+2025-10-16 14:05:59,726 - INFO - Connected to camera source: 0
+2025-10-16 14:05:59,726 - INFO - Camera resolution: 1280x720
+2025-10-16 14:06:00,018 - INFO - Starting camera calibration...
+2025-10-16 14:06:00,045 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:06:00,045 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:06:29,854 - INFO - System interrupted by user
+2025-10-16 14:06:48,485 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:06:48,485 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:06:48,490 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:06:48,490 - INFO - Video source: 0
+2025-10-16 14:06:48,490 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:06:48,490 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:06:48,491 - INFO - Person radius: 0.6m
+2025-10-16 14:06:48,491 - INFO - Using tracker: Centroid
+2025-10-16 14:06:48,491 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:06:48,491 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:06:48,491 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:06:48,491 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:06:48,564 - INFO - YOLO model loaded successfully
+2025-10-16 14:06:48,565 - INFO - Trying primary camera source: 0
+2025-10-16 14:06:49,642 - INFO - Connected to camera source: 0
+2025-10-16 14:06:49,643 - INFO - Camera resolution: 1280x720
+2025-10-16 14:06:50,262 - INFO - Starting camera calibration...
+2025-10-16 14:06:50,329 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:06:50,329 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:07:03,139 - INFO - Clicked point 1: (248, 295)
+2025-10-16 14:07:04,626 - INFO - Clicked point 2: (783, 124)
+2025-10-16 14:07:06,220 - INFO - Clicked point 3: (1266, 381)
+2025-10-16 14:07:10,399 - INFO - Clicked point 4: (491, 718)
+2025-10-16 14:07:14,517 - INFO - Clicked point 5: (1267, 707)
+2025-10-16 14:07:17,733 - INFO - System interrupted by user
+2025-10-16 14:07:28,629 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:07:28,629 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:07:28,631 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:07:28,631 - INFO - Video source: 0
+2025-10-16 14:07:28,631 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:07:28,631 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:07:28,631 - INFO - Person radius: 0.6m
+2025-10-16 14:07:28,631 - INFO - Using tracker: Centroid
+2025-10-16 14:07:28,631 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:07:28,631 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:07:28,631 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:07:28,631 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:07:28,659 - INFO - YOLO model loaded successfully
+2025-10-16 14:07:28,659 - INFO - Trying primary camera source: 0
+2025-10-16 14:07:29,122 - INFO - Connected to camera source: 0
+2025-10-16 14:07:29,122 - INFO - Camera resolution: 1280x720
+2025-10-16 14:07:29,347 - INFO - Starting camera calibration...
+2025-10-16 14:07:29,385 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:07:29,385 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:07:36,249 - INFO - Clicked point 1: (179, 315)
+2025-10-16 14:07:39,183 - INFO - Clicked point 2: (704, 90)
+2025-10-16 14:07:41,822 - INFO - Clicked point 3: (1275, 358)
+2025-10-16 14:07:43,972 - INFO - Clicked point 4: (1277, 707)
+2025-10-16 14:07:45,785 - INFO - Clicked point 5: (428, 710)
+2025-10-16 14:08:07,936 - INFO - Grid initialized: 3x3 cells, capacity: 3 per cell
+2025-10-16 14:08:07,936 - INFO - Calibration completed: 6.0x6.0m, grid 3x3
+2025-10-16 14:08:07,936 - INFO - Using simple centroid tracker
+2025-10-16 14:08:07,936 - INFO - 
+============================================================
+2025-10-16 14:08:07,936 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:08:07,936 - INFO - ============================================================
+2025-10-16 14:08:07,936 - INFO -    '1' - Raw Camera
+2025-10-16 14:08:07,936 - INFO -    '2' - Grid Overlay
+2025-10-16 14:08:07,936 - INFO -    '3' - Detection View
+2025-10-16 14:08:07,936 - INFO -    '4' - Monitoring View
+2025-10-16 14:08:07,936 - INFO -    '5' - Split View
+2025-10-16 14:08:07,936 - INFO -    'q' - Quit
+2025-10-16 14:08:07,936 - INFO -    's' - Save screenshot
+2025-10-16 14:08:07,936 - INFO -    'g' - Toggle grid size
+2025-10-16 14:08:07,936 - INFO -    'r' - Reset to original grid
+2025-10-16 14:08:07,936 - INFO -    'f' - Show FPS info
+2025-10-16 14:08:07,936 - INFO - ============================================================
+
+2025-10-16 14:08:07,936 - INFO - Starting interactive video processing loop
+2025-10-16 14:09:49,547 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:13:15,616 - INFO - Processing interrupted by user
+2025-10-16 14:13:16,045 - INFO - Monitoring completed successfully
+2025-10-16 14:13:22,205 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:13:22,205 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:13:22,207 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:13:22,207 - INFO - Video source: 0
+2025-10-16 14:13:22,207 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:13:22,207 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:13:22,207 - INFO - Person radius: 0.6m
+2025-10-16 14:13:22,207 - INFO - Using tracker: Centroid
+2025-10-16 14:13:22,208 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:13:22,208 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:13:22,208 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:13:22,208 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:13:22,244 - INFO - YOLO model loaded successfully
+2025-10-16 14:13:22,244 - INFO - Trying primary camera source: 0
+2025-10-16 14:13:22,789 - INFO - Connected to camera source: 0
+2025-10-16 14:13:22,789 - INFO - Camera resolution: 1280x720
+2025-10-16 14:13:23,030 - INFO - Starting camera calibration...
+2025-10-16 14:13:23,070 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:13:23,070 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:13:27,572 - INFO - Clicked point 1: (247, 251)
+2025-10-16 14:13:29,118 - INFO - Clicked point 2: (797, 130)
+2025-10-16 14:13:32,273 - INFO - Clicked point 3: (1277, 265)
+2025-10-16 14:13:34,145 - INFO - Clicked point 4: (531, 714)
+2025-10-16 14:14:00,779 - INFO - Grid initialized: 3x3 cells, capacity: 3 per cell
+2025-10-16 14:14:00,779 - INFO - Calibration completed: 6.0x6.0m, grid 3x3
+2025-10-16 14:14:00,779 - INFO - Using simple centroid tracker
+2025-10-16 14:14:00,779 - INFO - 
+============================================================
+2025-10-16 14:14:00,780 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:14:00,780 - INFO - ============================================================
+2025-10-16 14:14:00,780 - INFO -    '1' - Raw Camera
+2025-10-16 14:14:00,780 - INFO -    '2' - Grid Overlay
+2025-10-16 14:14:00,780 - INFO -    '3' - Detection View
+2025-10-16 14:14:00,780 - INFO -    '4' - Monitoring View
+2025-10-16 14:14:00,780 - INFO -    '5' - Split View
+2025-10-16 14:14:00,780 - INFO -    'q' - Quit
+2025-10-16 14:14:00,780 - INFO -    's' - Save screenshot
+2025-10-16 14:14:00,780 - INFO -    'g' - Toggle grid size
+2025-10-16 14:14:00,780 - INFO -    'r' - Reset to original grid
+2025-10-16 14:14:00,780 - INFO -    'f' - Show FPS info
+2025-10-16 14:14:00,781 - INFO - ============================================================
+
+2025-10-16 14:14:00,781 - INFO - Starting interactive video processing loop
+2025-10-16 14:14:06,355 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:21:42,911 - INFO - Processing interrupted by user
+2025-10-16 14:21:43,283 - INFO - Monitoring completed successfully
+2025-10-16 14:21:52,628 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:21:52,628 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:21:52,630 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:21:52,630 - INFO - Video source: 0
+2025-10-16 14:21:52,630 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:21:52,630 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:21:52,630 - INFO - Person radius: 0.6m
+2025-10-16 14:21:52,630 - INFO - Using tracker: Centroid
+2025-10-16 14:21:52,630 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:21:52,630 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:21:52,630 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:21:52,630 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:21:52,659 - INFO - YOLO model loaded successfully
+2025-10-16 14:21:52,659 - INFO - Trying primary camera source: 0
+2025-10-16 14:21:53,151 - INFO - Connected to camera source: 0
+2025-10-16 14:21:53,151 - INFO - Camera resolution: 1280x720
+2025-10-16 14:21:53,384 - INFO - Starting camera calibration...
+2025-10-16 14:21:53,430 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:21:53,430 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:22:20,823 - INFO - Clicked point 1: (200, 274)
+2025-10-16 14:22:22,320 - INFO - Clicked point 2: (946, 287)
+2025-10-16 14:22:23,669 - INFO - Clicked point 3: (920, 649)
+2025-10-16 14:22:24,888 - INFO - Clicked point 4: (195, 661)
+2025-10-16 14:24:06,604 - INFO - Dimension input cancelled
+2025-10-16 14:24:06,942 - ERROR - Monitoring failed to initialize
+2025-10-16 14:24:13,115 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:24:13,115 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:24:13,117 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:24:13,117 - INFO - Video source: 0
+2025-10-16 14:24:13,117 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:24:13,117 - INFO - Grid cell size: 2.0x2.0m
+2025-10-16 14:24:13,117 - INFO - Person radius: 0.6m
+2025-10-16 14:24:13,117 - INFO - Using tracker: Centroid
+2025-10-16 14:24:13,117 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:24:13,118 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:24:13,118 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:24:13,118 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:24:13,145 - INFO - YOLO model loaded successfully
+2025-10-16 14:24:13,145 - INFO - Trying primary camera source: 0
+2025-10-16 14:24:13,610 - INFO - Connected to camera source: 0
+2025-10-16 14:24:13,610 - INFO - Camera resolution: 1280x720
+2025-10-16 14:24:13,845 - INFO - Starting camera calibration...
+2025-10-16 14:24:13,867 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:24:13,867 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:24:17,954 - INFO - Clicked point 1: (825, 74)
+2025-10-16 14:24:19,736 - INFO - Clicked point 2: (42, 462)
+2025-10-16 14:24:21,270 - INFO - Clicked point 3: (147, 700)
+2025-10-16 14:24:22,986 - INFO - Clicked point 4: (1138, 239)
+2025-10-16 14:24:24,356 - INFO - Clicked point 5: (1138, 239)
+2025-10-16 14:24:41,935 - INFO - Grid initialized: 3x5 cells, capacity: 3 per cell
+2025-10-16 14:24:41,935 - INFO - Calibration completed: 9.0x6.0m, grid 3x5
+2025-10-16 14:24:41,935 - INFO - Using simple centroid tracker
+2025-10-16 14:24:41,935 - INFO - 
+============================================================
+2025-10-16 14:24:41,935 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:24:41,935 - INFO - ============================================================
+2025-10-16 14:24:41,935 - INFO -    '1' - Raw Camera
+2025-10-16 14:24:41,935 - INFO -    '2' - Grid Overlay
+2025-10-16 14:24:41,935 - INFO -    '3' - Detection View
+2025-10-16 14:24:41,935 - INFO -    '4' - Monitoring View
+2025-10-16 14:24:41,935 - INFO -    '5' - Split View
+2025-10-16 14:24:41,935 - INFO -    'q' - Quit
+2025-10-16 14:24:41,935 - INFO -    's' - Save screenshot
+2025-10-16 14:24:41,936 - INFO -    'g' - Toggle grid size
+2025-10-16 14:24:41,936 - INFO -    'r' - Reset to original grid
+2025-10-16 14:24:41,936 - INFO -    'f' - Show FPS info
+2025-10-16 14:24:41,936 - INFO - ============================================================
+
+2025-10-16 14:24:41,936 - INFO - Starting interactive video processing loop
+2025-10-16 14:25:13,075 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:28:48,609 - INFO - Processing interrupted by user
+2025-10-16 14:28:48,971 - INFO - Monitoring completed successfully
+2025-10-16 14:29:11,045 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:29:11,045 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:29:11,047 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:29:11,047 - INFO - Video source: 0
+2025-10-16 14:29:11,047 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:29:11,047 - INFO - Grid cell size: 1.0x1.0m
+2025-10-16 14:29:11,047 - INFO - Person radius: 0.3m
+2025-10-16 14:29:11,047 - INFO - Using tracker: Centroid
+2025-10-16 14:29:11,047 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:29:11,047 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:29:11,047 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:29:11,048 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:29:11,082 - INFO - YOLO model loaded successfully
+2025-10-16 14:29:11,082 - INFO - Trying primary camera source: 0
+2025-10-16 14:29:11,574 - INFO - Connected to camera source: 0
+2025-10-16 14:29:11,575 - INFO - Camera resolution: 1280x720
+2025-10-16 14:29:11,818 - INFO - Starting camera calibration...
+2025-10-16 14:29:11,848 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:29:11,848 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:29:14,082 - INFO - Clicked point 1: (917, 184)
+2025-10-16 14:29:20,453 - INFO - System interrupted by user
+2025-10-16 14:29:43,514 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:29:43,514 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:29:43,522 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:29:43,522 - INFO - Video source: 0
+2025-10-16 14:29:43,522 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:29:43,522 - INFO - Grid cell size: 1.0x1.0m
+2025-10-16 14:29:43,522 - INFO - Person radius: 0.3m
+2025-10-16 14:29:43,524 - INFO - Using tracker: Centroid
+2025-10-16 14:29:43,524 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:29:43,524 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:29:43,524 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:29:43,524 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:29:43,675 - INFO - YOLO model loaded successfully
+2025-10-16 14:29:43,675 - INFO - Trying primary camera source: 0
+2025-10-16 14:29:44,542 - INFO - Connected to camera source: 0
+2025-10-16 14:29:44,542 - INFO - Camera resolution: 1280x720
+2025-10-16 14:29:46,101 - INFO - Starting camera calibration...
+2025-10-16 14:29:46,367 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:29:46,367 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:30:04,747 - INFO - Clicked point 1: (836, 74)
+2025-10-16 14:30:06,363 - INFO - Clicked point 2: (250, 333)
+2025-10-16 14:30:07,922 - INFO - Clicked point 3: (391, 679)
+2025-10-16 14:30:09,380 - INFO - Clicked point 4: (994, 283)
+2025-10-16 14:30:17,522 - INFO - Grid initialized: 3x3 cells, capacity: 3 per cell
+2025-10-16 14:30:17,522 - INFO - Calibration completed: 3.0x3.0m, grid 3x3
+2025-10-16 14:30:17,522 - INFO - Using simple centroid tracker
+2025-10-16 14:30:17,522 - INFO - 
+============================================================
+2025-10-16 14:30:17,522 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:30:17,522 - INFO - ============================================================
+2025-10-16 14:30:17,522 - INFO -    '1' - Raw Camera
+2025-10-16 14:30:17,522 - INFO -    '2' - Grid Overlay
+2025-10-16 14:30:17,522 - INFO -    '3' - Detection View
+2025-10-16 14:30:17,522 - INFO -    '4' - Monitoring View
+2025-10-16 14:30:17,522 - INFO -    '5' - Split View
+2025-10-16 14:30:17,523 - INFO -    'q' - Quit
+2025-10-16 14:30:17,523 - INFO -    's' - Save screenshot
+2025-10-16 14:30:17,523 - INFO -    'g' - Toggle grid size
+2025-10-16 14:30:17,523 - INFO -    'r' - Reset to original grid
+2025-10-16 14:30:17,523 - INFO -    'f' - Show FPS info
+2025-10-16 14:30:17,523 - INFO - ============================================================
+
+2025-10-16 14:30:17,523 - INFO - Starting interactive video processing loop
+2025-10-16 14:30:20,114 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:30:58,928 - INFO - Processing interrupted by user
+2025-10-16 14:30:59,367 - INFO - Monitoring completed successfully
+2025-10-16 14:31:59,772 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:31:59,773 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:31:59,781 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:31:59,781 - INFO - Video source: 0
+2025-10-16 14:31:59,781 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:31:59,781 - INFO - Grid cell size: 5.5x5.5m
+2025-10-16 14:31:59,781 - INFO - Person radius: 0.1m
+2025-10-16 14:31:59,782 - INFO - Using tracker: Centroid
+2025-10-16 14:31:59,782 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:31:59,782 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:31:59,782 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:31:59,783 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:31:59,894 - INFO - YOLO model loaded successfully
+2025-10-16 14:31:59,895 - INFO - Trying primary camera source: 0
+2025-10-16 14:32:01,074 - INFO - Connected to camera source: 0
+2025-10-16 14:32:01,074 - INFO - Camera resolution: 1280x720
+2025-10-16 14:32:01,702 - INFO - Starting camera calibration...
+2025-10-16 14:32:01,789 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:32:01,789 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:32:04,640 - INFO - Clicked point 1: (210, 110)
+2025-10-16 14:32:05,744 - INFO - Clicked point 2: (1053, 79)
+2025-10-16 14:32:06,818 - INFO - Clicked point 3: (1066, 556)
+2025-10-16 14:32:07,916 - INFO - Clicked point 4: (203, 569)
+2025-10-16 14:32:14,119 - INFO - Grid initialized: 1x1 cells, capacity: 962 per cell
+2025-10-16 14:32:14,119 - INFO - Calibration completed: 5.0x5.0m, grid 1x1
+2025-10-16 14:32:14,119 - INFO - Using simple centroid tracker
+2025-10-16 14:32:14,120 - INFO - 
+============================================================
+2025-10-16 14:32:14,120 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:32:14,120 - INFO - ============================================================
+2025-10-16 14:32:14,120 - INFO -    '1' - Raw Camera
+2025-10-16 14:32:14,120 - INFO -    '2' - Grid Overlay
+2025-10-16 14:32:14,120 - INFO -    '3' - Detection View
+2025-10-16 14:32:14,120 - INFO -    '4' - Monitoring View
+2025-10-16 14:32:14,120 - INFO -    '5' - Split View
+2025-10-16 14:32:14,120 - INFO -    'q' - Quit
+2025-10-16 14:32:14,120 - INFO -    's' - Save screenshot
+2025-10-16 14:32:14,120 - INFO -    'g' - Toggle grid size
+2025-10-16 14:32:14,120 - INFO -    'r' - Reset to original grid
+2025-10-16 14:32:14,120 - INFO -    'f' - Show FPS info
+2025-10-16 14:32:14,120 - INFO - ============================================================
+
+2025-10-16 14:32:14,120 - INFO - Starting interactive video processing loop
+2025-10-16 14:32:16,049 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:33:28,632 - INFO - Processing interrupted by user
+2025-10-16 14:34:25,455 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:34:25,455 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:34:25,460 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:34:25,460 - INFO - Video source: 0
+2025-10-16 14:34:25,460 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:34:25,461 - INFO - Grid cell size: 0.5x0.5m
+2025-10-16 14:34:25,461 - INFO - Person radius: 0.1m
+2025-10-16 14:34:25,461 - INFO - Using tracker: Centroid
+2025-10-16 14:34:25,461 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:34:25,461 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:34:25,461 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:34:25,461 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:34:25,537 - INFO - YOLO model loaded successfully
+2025-10-16 14:34:25,537 - INFO - Trying primary camera source: 0
+2025-10-16 14:34:26,375 - INFO - Connected to camera source: 0
+2025-10-16 14:34:26,375 - INFO - Camera resolution: 1280x720
+2025-10-16 14:34:26,850 - INFO - Starting camera calibration...
+2025-10-16 14:34:26,906 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:34:26,907 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:34:28,891 - INFO - Clicked point 1: (375, 158)
+2025-10-16 14:34:30,332 - INFO - Clicked point 2: (836, 131)
+2025-10-16 14:34:31,684 - INFO - Clicked point 3: (860, 606)
+2025-10-16 14:34:33,235 - INFO - Clicked point 4: (357, 594)
+2025-10-16 14:34:39,417 - INFO - Grid initialized: 10x10 cells, capacity: 7 per cell
+2025-10-16 14:34:39,417 - INFO - Calibration completed: 5.0x5.0m, grid 10x10
+2025-10-16 14:34:39,417 - INFO - Using simple centroid tracker
+2025-10-16 14:34:39,417 - INFO - 
+============================================================
+2025-10-16 14:34:39,417 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:34:39,417 - INFO - ============================================================
+2025-10-16 14:34:39,417 - INFO -    '1' - Raw Camera
+2025-10-16 14:34:39,417 - INFO -    '2' - Grid Overlay
+2025-10-16 14:34:39,417 - INFO -    '3' - Detection View
+2025-10-16 14:34:39,417 - INFO -    '4' - Monitoring View
+2025-10-16 14:34:39,418 - INFO -    '5' - Split View
+2025-10-16 14:34:39,418 - INFO -    'q' - Quit
+2025-10-16 14:34:39,418 - INFO -    's' - Save screenshot
+2025-10-16 14:34:39,418 - INFO -    'g' - Toggle grid size
+2025-10-16 14:34:39,418 - INFO -    'r' - Reset to original grid
+2025-10-16 14:34:39,418 - INFO -    'f' - Show FPS info
+2025-10-16 14:34:39,418 - INFO - ============================================================
+
+2025-10-16 14:34:39,418 - INFO - Starting interactive video processing loop
+2025-10-16 14:34:42,798 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:35:16,536 - INFO - Processing interrupted by user
+2025-10-16 14:35:36,380 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-10-16 14:35:36,381 - INFO - Install with: pip install deep-sort-realtime
+2025-10-16 14:35:36,386 - INFO - === Enhanced Crowd Monitoring System ===
+2025-10-16 14:35:36,386 - INFO - Video source: 0
+2025-10-16 14:35:36,387 - INFO - YOLO model: yolov8n.pt
+2025-10-16 14:35:36,387 - INFO - Grid cell size: 0.5x0.5m
+2025-10-16 14:35:36,387 - INFO - Person radius: 0.6m
+2025-10-16 14:35:36,387 - INFO - Using tracker: Centroid
+2025-10-16 14:35:36,388 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-10-16 14:35:36,388 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-10-16 14:35:36,388 - INFO - Loading YOLO model: yolov8n.pt
+2025-10-16 14:35:36,388 - INFO - Using existing model: yolov8n.pt
+2025-10-16 14:35:36,472 - INFO - YOLO model loaded successfully
+2025-10-16 14:35:36,472 - INFO - Trying primary camera source: 0
+2025-10-16 14:35:37,258 - INFO - Connected to camera source: 0
+2025-10-16 14:35:37,259 - INFO - Camera resolution: 1280x720
+2025-10-16 14:35:37,598 - INFO - Starting camera calibration...
+2025-10-16 14:35:37,650 - INFO - Click 4 ground reference points in clockwise order
+2025-10-16 14:35:37,650 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-10-16 14:35:44,888 - INFO - Clicked point 1: (215, 195)
+2025-10-16 14:35:45,895 - INFO - Clicked point 2: (705, 189)
+2025-10-16 14:35:50,165 - INFO - Clicked point 3: (727, 560)
+2025-10-16 14:35:51,579 - INFO - Clicked point 4: (254, 563)
+2025-10-16 14:36:02,329 - INFO - Grid initialized: 14x14 cells, capacity: 1 per cell
+2025-10-16 14:36:02,330 - INFO - Calibration completed: 7.0x7.0m, grid 14x14
+2025-10-16 14:36:02,330 - INFO - Using simple centroid tracker
+2025-10-16 14:36:02,330 - INFO - 
+============================================================
+2025-10-16 14:36:02,330 - INFO - INTERACTIVE CONTROLS:
+2025-10-16 14:36:02,330 - INFO - ============================================================
+2025-10-16 14:36:02,331 - INFO -    '1' - Raw Camera
+2025-10-16 14:36:02,331 - INFO -    '2' - Grid Overlay
+2025-10-16 14:36:02,331 - INFO -    '3' - Detection View
+2025-10-16 14:36:02,331 - INFO -    '4' - Monitoring View
+2025-10-16 14:36:02,331 - INFO -    '5' - Split View
+2025-10-16 14:36:02,331 - INFO -    'q' - Quit
+2025-10-16 14:36:02,331 - INFO -    's' - Save screenshot
+2025-10-16 14:36:02,331 - INFO -    'g' - Toggle grid size
+2025-10-16 14:36:02,331 - INFO -    'r' - Reset to original grid
+2025-10-16 14:36:02,331 - INFO -    'f' - Show FPS info
+2025-10-16 14:36:02,331 - INFO - ============================================================
+
+2025-10-16 14:36:02,331 - INFO - Starting interactive video processing loop
+2025-10-16 14:36:04,775 - INFO - Display mode switched from Monitoring View to Split View
+2025-10-16 14:37:32,157 - INFO - Processing interrupted by user
+2025-10-16 14:37:32,537 - INFO - Monitoring completed successfully
+2025-11-07 02:06:30,319 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-11-07 02:06:30,319 - INFO - Install with: pip install deep-sort-realtime
+2025-11-07 02:06:30,322 - INFO - === Enhanced Crowd Monitoring System ===
+2025-11-07 02:06:30,322 - INFO - Video source: 0
+2025-11-07 02:06:30,322 - INFO - YOLO model: yolov8n.pt
+2025-11-07 02:06:30,322 - INFO - Grid cell size: 2.0x2.0m
+2025-11-07 02:06:30,322 - INFO - Person radius: 0.6m
+2025-11-07 02:06:30,322 - INFO - Using tracker: Centroid
+2025-11-07 02:06:30,322 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-11-07 02:06:30,322 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-11-07 02:06:30,322 - INFO - Loading YOLO model: yolov8n.pt
+2025-11-07 02:06:30,322 - INFO - Using existing model: yolov8n.pt
+2025-11-07 02:06:30,396 - INFO - YOLO model loaded successfully
+2025-11-07 02:06:30,396 - INFO - Trying primary camera source: 0
+2025-11-07 02:06:31,346 - INFO - Connected to camera source: 0
+2025-11-07 02:06:31,346 - INFO - Camera resolution: 1280x720
+2025-11-07 02:06:31,717 - INFO - Starting camera calibration...
+2025-11-07 02:06:31,748 - INFO - Click 4 ground reference points in clockwise order
+2025-11-07 02:06:31,748 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-11-07 02:06:58,218 - INFO - System interrupted by user
+2025-11-07 02:07:43,372 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-11-07 02:07:43,372 - INFO - Install with: pip install deep-sort-realtime
+2025-11-07 02:07:43,380 - INFO - === Enhanced Crowd Monitoring System ===
+2025-11-07 02:07:43,380 - INFO - Video source: 0
+2025-11-07 02:07:43,382 - INFO - YOLO model: yolov8n.pt
+2025-11-07 02:07:43,382 - INFO - Grid cell size: 2.0x2.0m
+2025-11-07 02:07:43,382 - INFO - Person radius: 0.6m
+2025-11-07 02:07:43,382 - INFO - Using tracker: Centroid
+2025-11-07 02:07:43,382 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-11-07 02:07:43,382 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-11-07 02:07:43,382 - INFO - Loading YOLO model: yolov8n.pt
+2025-11-07 02:07:43,382 - INFO - Using existing model: yolov8n.pt
+2025-11-07 02:07:43,504 - INFO - YOLO model loaded successfully
+2025-11-07 02:07:43,505 - INFO - Trying primary camera source: 0
+2025-11-07 02:07:44,814 - INFO - Connected to camera source: 0
+2025-11-07 02:07:44,815 - INFO - Camera resolution: 1280x720
+2025-11-07 02:07:45,463 - INFO - Starting camera calibration...
+2025-11-07 02:07:45,525 - INFO - Click 4 ground reference points in clockwise order
+2025-11-07 02:07:45,525 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-11-07 02:07:54,772 - INFO - Clicked point 1: (186, 111)
+2025-11-07 02:07:55,639 - INFO - Clicked point 2: (1011, 110)
+2025-11-07 02:07:56,504 - INFO - Clicked point 3: (1059, 622)
+2025-11-07 02:07:57,372 - INFO - Clicked point 4: (197, 600)
+2025-11-07 02:08:10,679 - INFO - Grid initialized: 5x5 cells, capacity: 3 per cell
+2025-11-07 02:08:10,679 - INFO - Calibration completed: 10.0x10.0m, grid 5x5
+2025-11-07 02:08:10,679 - INFO - Using simple centroid tracker
+2025-11-07 02:08:10,679 - INFO - 
+============================================================
+2025-11-07 02:08:10,679 - INFO - INTERACTIVE CONTROLS:
+2025-11-07 02:08:10,679 - INFO - ============================================================
+2025-11-07 02:08:10,679 - INFO -    '1' - Raw Camera
+2025-11-07 02:08:10,679 - INFO -    '2' - Grid Overlay
+2025-11-07 02:08:10,679 - INFO -    '3' - Detection View
+2025-11-07 02:08:10,680 - INFO -    '4' - Monitoring View
+2025-11-07 02:08:10,680 - INFO -    '5' - Split View
+2025-11-07 02:08:10,680 - INFO -    'q' - Quit
+2025-11-07 02:08:10,680 - INFO -    's' - Save screenshot
+2025-11-07 02:08:10,680 - INFO -    'g' - Toggle grid size
+2025-11-07 02:08:10,680 - INFO -    'r' - Reset to original grid
+2025-11-07 02:08:10,680 - INFO -    'f' - Show FPS info
+2025-11-07 02:08:10,680 - INFO - ============================================================
+
+2025-11-07 02:08:10,680 - INFO - Starting interactive video processing loop
+2025-11-07 02:08:16,066 - INFO - Processing interrupted by user
+2025-12-10 00:44:48,855 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-12-10 00:44:48,855 - INFO - Install with: pip install deep-sort-realtime
+2025-12-10 00:44:48,859 - INFO - === Enhanced Crowd Monitoring System ===
+2025-12-10 00:44:48,859 - INFO - Video source: 0
+2025-12-10 00:44:48,859 - INFO - YOLO model: yolov8n.pt
+2025-12-10 00:44:48,859 - INFO - Grid cell size: 2.0x2.0m
+2025-12-10 00:44:48,860 - INFO - Person radius: 0.6m
+2025-12-10 00:44:48,860 - INFO - Using tracker: Centroid
+2025-12-10 00:44:48,860 - INFO - Interactive features enabled: Screenshots=True, Grid adjustment=True
+2025-12-10 00:44:48,860 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-12-10 00:44:48,860 - INFO - Loading YOLO model: yolov8n.pt
+2025-12-10 00:44:48,860 - INFO - Using existing model: yolov8n.pt
+2025-12-10 00:44:48,944 - INFO - YOLO model loaded successfully
+2025-12-10 00:44:48,944 - INFO - Trying primary camera source: 0
+2025-12-10 00:44:49,992 - INFO - Connected to camera source: 0
+2025-12-10 00:44:49,992 - INFO - Camera resolution: 1280x720
+2025-12-10 00:44:50,496 - INFO - Starting camera calibration...
+2025-12-10 00:44:50,539 - INFO - Click 4 ground reference points in clockwise order
+2025-12-10 00:44:50,540 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-12-10 00:44:51,889 - INFO - Clicked point 1: (268, 101)
+2025-12-10 00:44:52,341 - INFO - Clicked point 2: (875, 103)
+2025-12-10 00:44:53,171 - INFO - Clicked point 3: (940, 634)
+2025-12-10 00:44:53,980 - INFO - Clicked point 4: (252, 631)
+2025-12-10 00:45:03,577 - INFO - Grid initialized: 4x4 cells, capacity: 3 per cell
+2025-12-10 00:45:03,577 - INFO - Calibration completed: 8.0x8.0m, grid 4x4
+2025-12-10 00:45:03,577 - INFO - Using simple centroid tracker
+2025-12-10 00:45:03,577 - INFO - 
+============================================================
+2025-12-10 00:45:03,577 - INFO - INTERACTIVE CONTROLS:
+2025-12-10 00:45:03,577 - INFO - ============================================================
+2025-12-10 00:45:03,578 - INFO -    '1' - Raw Camera
+2025-12-10 00:45:03,578 - INFO -    '2' - Grid Overlay
+2025-12-10 00:45:03,578 - INFO -    '3' - Detection View
+2025-12-10 00:45:03,578 - INFO -    '4' - Monitoring View
+2025-12-10 00:45:03,578 - INFO -    '5' - Split View
+2025-12-10 00:45:03,578 - INFO -    'q' - Quit
+2025-12-10 00:45:03,578 - INFO -    's' - Save screenshot
+2025-12-10 00:45:03,578 - INFO -    'g' - Toggle grid size
+2025-12-10 00:45:03,579 - INFO -    'r' - Reset to original grid
+2025-12-10 00:45:03,579 - INFO -    'f' - Show FPS info
+2025-12-10 00:45:03,579 - INFO - ============================================================
+
+2025-12-10 00:45:03,579 - INFO - Starting interactive video processing loop
+2025-12-10 00:45:06,402 - INFO - Display mode switched from Monitoring View to Split View
+2025-12-10 00:46:58,245 - INFO - Processing interrupted by user
+2025-12-10 00:46:58,621 - INFO - Monitoring completed successfully
+2025-12-10 01:13:42,079 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-12-10 01:13:42,081 - INFO - Install with: pip install deep-sort-realtime
+2025-12-10 01:13:42,095 - INFO - === Enhanced Crowd Monitoring System ===
+2025-12-10 01:13:42,097 - INFO - Video source: 0
+2025-12-10 01:13:42,098 - INFO - YOLO model: yolov8n.pt
+2025-12-10 01:13:42,098 - INFO - Grid cell size: 2.0x2.0m
+2025-12-10 01:13:42,098 - INFO - Person radius: 0.4m
+2025-12-10 01:13:42,099 - INFO - Using tracker: Centroid
+2025-12-10 01:13:42,099 - INFO - Interactive features: Screenshots=True, Grid adjustment=True
+2025-12-10 01:13:42,099 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-12-10 01:13:42,101 - INFO - Loading YOLO model: yolov8n.pt
+2025-12-10 01:13:42,101 - INFO - Using existing model: yolov8n.pt
+2025-12-10 01:13:42,199 - INFO - YOLO model loaded successfully
+2025-12-10 01:13:42,199 - INFO - Trying primary camera source: 0
+2025-12-10 01:13:43,205 - INFO - Connected to camera source: 0
+2025-12-10 01:13:43,207 - INFO - Camera resolution: 1280x720
+2025-12-10 01:13:43,799 - INFO - Starting camera calibration...
+2025-12-10 01:13:43,836 - INFO - Click 4 ground reference points in clockwise order
+2025-12-10 01:13:43,837 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-12-10 01:13:44,979 - INFO - Clicked point 1: (190, 118)
+2025-12-10 01:13:45,474 - INFO - Clicked point 2: (1120, 133)
+2025-12-10 01:13:45,919 - INFO - Clicked point 3: (1046, 551)
+2025-12-10 01:13:46,585 - INFO - Clicked point 4: (201, 605)
+2025-12-10 01:13:51,076 - INFO - Calibration completed: 4.0x4.0m
+2025-12-10 01:13:51,076 - INFO - Grid initialized: 2x2 cells, capacity: 7 per cell
+2025-12-10 01:13:51,077 - INFO - Using simple centroid tracker
+2025-12-10 01:13:51,077 - INFO - 
+============================================================
+2025-12-10 01:13:51,077 - INFO - INTERACTIVE CONTROLS:
+2025-12-10 01:13:51,077 - INFO - ============================================================
+2025-12-10 01:13:51,077 - INFO -    '1' - Raw Camera
+2025-12-10 01:13:51,077 - INFO -    '2' - Grid Overlay
+2025-12-10 01:13:51,078 - INFO -    '3' - Detection View
+2025-12-10 01:13:51,078 - INFO -    '4' - Monitoring View
+2025-12-10 01:13:51,078 - INFO -    '5' - Split View
+2025-12-10 01:13:51,078 - INFO -    'q' - Quit
+2025-12-10 01:13:51,079 - INFO -    's' - Save screenshot
+2025-12-10 01:13:51,079 - INFO -    'g' - Toggle grid size
+2025-12-10 01:13:51,079 - INFO -    'r' - Reset to original grid
+2025-12-10 01:13:51,079 - INFO -    'f' - Show FPS info
+2025-12-10 01:13:51,079 - INFO - ============================================================
+
+2025-12-10 01:13:51,079 - INFO - Starting interactive video processing loop
+2025-12-10 01:13:54,221 - INFO - Display mode switched from Monitoring View to Split View
+2025-12-10 01:14:30,320 - INFO - Processing interrupted by user
+2025-12-10 01:14:30,696 - INFO - System interrupted by user
+2025-12-10 01:16:53,439 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-12-10 01:16:53,439 - INFO - Install with: pip install deep-sort-realtime
+2025-12-10 01:16:53,441 - INFO - === Enhanced Crowd Monitoring System ===
+2025-12-10 01:16:53,441 - INFO - Video source: 0
+2025-12-10 01:16:53,442 - INFO - YOLO model: model/yolov8n.pt
+2025-12-10 01:16:53,442 - INFO - Grid cell size: 2.0x2.0m
+2025-12-10 01:16:53,442 - INFO - Person radius: 0.6m
+2025-12-10 01:16:53,442 - INFO - Using tracker: Centroid
+2025-12-10 01:16:53,442 - INFO - Interactive features: Screenshots=True, Grid adjustment=True
+2025-12-10 01:16:53,442 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-12-10 01:16:53,442 - INFO - Loading YOLO model: model/yolov8n.pt
+2025-12-10 01:16:53,442 - INFO - Downloading YOLO model: model/yolov8n.pt
+2025-12-10 01:16:55,428 - INFO - Model model/yolov8n.pt downloaded successfully
+2025-12-10 01:16:55,455 - INFO - YOLO model loaded successfully
+2025-12-10 01:16:55,456 - INFO - Trying primary camera source: 0
+2025-12-10 01:16:56,191 - INFO - Connected to camera source: 0
+2025-12-10 01:16:56,191 - INFO - Camera resolution: 1280x720
+2025-12-10 01:16:56,554 - INFO - Starting camera calibration...
+2025-12-10 01:16:56,596 - INFO - Click 4 ground reference points in clockwise order
+2025-12-10 01:16:56,596 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-12-10 01:16:57,797 - INFO - Clicked point 1: (226, 116)
+2025-12-10 01:16:58,597 - INFO - Clicked point 2: (1054, 84)
+2025-12-10 01:16:59,362 - INFO - Clicked point 3: (1118, 606)
+2025-12-10 01:16:59,958 - INFO - Clicked point 4: (136, 639)
+2025-12-10 01:17:55,409 - INFO - Calibration completed: 4.0x4.0m
+2025-12-10 01:17:55,409 - INFO - Grid initialized: 2x2 cells, capacity: 3 per cell
+2025-12-10 01:17:55,409 - INFO - Using simple centroid tracker
+2025-12-10 01:17:55,409 - INFO - 
+============================================================
+2025-12-10 01:17:55,409 - INFO - INTERACTIVE CONTROLS:
+2025-12-10 01:17:55,409 - INFO - ============================================================
+2025-12-10 01:17:55,409 - INFO -    '1' - Raw Camera
+2025-12-10 01:17:55,409 - INFO -    '2' - Grid Overlay
+2025-12-10 01:17:55,409 - INFO -    '3' - Detection View
+2025-12-10 01:17:55,410 - INFO -    '4' - Monitoring View
+2025-12-10 01:17:55,410 - INFO -    '5' - Split View
+2025-12-10 01:17:55,410 - INFO -    'q' - Quit
+2025-12-10 01:17:55,410 - INFO -    's' - Save screenshot
+2025-12-10 01:17:55,410 - INFO -    'g' - Toggle grid size
+2025-12-10 01:17:55,410 - INFO -    'r' - Reset to original grid
+2025-12-10 01:17:55,410 - INFO -    'f' - Show FPS info
+2025-12-10 01:17:55,410 - INFO - ============================================================
+
+2025-12-10 01:17:55,410 - INFO - Starting interactive video processing loop
+2025-12-10 01:17:57,137 - INFO - Display mode switched from Monitoring View to Split View
+2025-12-10 01:19:13,725 - INFO - Processing interrupted by user
+2025-12-10 01:19:14,100 - INFO - Monitoring completed successfully
+2025-12-10 01:26:53,960 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-12-10 01:26:53,962 - INFO - Install with: pip install deep-sort-realtime
+2025-12-10 01:26:53,963 - INFO - === Enhanced Crowd Monitoring System ===
+2025-12-10 01:26:53,963 - INFO - Video source: 0
+2025-12-10 01:26:53,963 - INFO - YOLO model: model/yolov8n.pt
+2025-12-10 01:26:53,963 - INFO - Grid cell size: 2.0x2.0m
+2025-12-10 01:26:53,963 - INFO - Person radius: 0.6m
+2025-12-10 01:26:53,963 - INFO - Using tracker: Centroid
+2025-12-10 01:26:53,963 - INFO - Interactive features: Screenshots=True, Grid adjustment=True
+2025-12-10 01:26:53,963 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-12-10 01:26:53,963 - INFO - Loading YOLO model: model/yolov8n.pt
+2025-12-10 01:26:53,963 - INFO - Using existing model: model/yolov8n.pt
+2025-12-10 01:26:54,031 - INFO - YOLO model loaded successfully
+2025-12-10 01:26:54,031 - INFO - Trying primary camera source: 0
+2025-12-10 01:26:54,601 - INFO - Connected to camera source: 0
+2025-12-10 01:26:54,601 - INFO - Camera resolution: 1280x720
+2025-12-10 01:26:54,965 - INFO - Starting camera calibration...
+2025-12-10 01:26:54,990 - INFO - Click 4 ground reference points in clockwise order
+2025-12-10 01:26:54,990 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-12-10 01:26:57,082 - INFO - Clicked point 1: (206, 138)
+2025-12-10 01:26:57,723 - INFO - Clicked point 2: (1101, 119)
+2025-12-10 01:26:58,421 - INFO - Clicked point 3: (1129, 625)
+2025-12-10 01:26:59,040 - INFO - Clicked point 4: (204, 649)
+2025-12-10 01:27:03,036 - INFO - Calibration completed: 4.0x4.0m
+2025-12-10 01:27:03,036 - INFO - Grid initialized: 2x2 cells, capacity: 3 per cell
+2025-12-10 01:27:03,036 - INFO - Using simple centroid tracker
+2025-12-10 01:27:03,036 - INFO - 
+============================================================
+2025-12-10 01:27:03,036 - INFO - INTERACTIVE CONTROLS:
+2025-12-10 01:27:03,036 - INFO - ============================================================
+2025-12-10 01:27:03,036 - INFO -    '1' - Raw Camera
+2025-12-10 01:27:03,036 - INFO -    '2' - Grid Overlay
+2025-12-10 01:27:03,036 - INFO -    '3' - Detection View
+2025-12-10 01:27:03,036 - INFO -    '4' - Monitoring View
+2025-12-10 01:27:03,036 - INFO -    '5' - Split View
+2025-12-10 01:27:03,036 - INFO -    'q' - Quit
+2025-12-10 01:27:03,036 - INFO -    's' - Save screenshot
+2025-12-10 01:27:03,036 - INFO -    'g' - Toggle grid size
+2025-12-10 01:27:03,036 - INFO -    'r' - Reset to original grid
+2025-12-10 01:27:03,036 - INFO -    'f' - Show FPS info
+2025-12-10 01:27:03,036 - INFO - ============================================================
+
+2025-12-10 01:27:03,036 - INFO - Starting interactive video processing loop
+2025-12-10 01:27:04,366 - INFO - Display mode switched from Monitoring View to Split View
+2025-12-10 01:27:37,726 - INFO - Processing interrupted by user
+2025-12-10 01:27:50,752 - WARNING - DeepSort not available: No module named 'deep_sort_realtime'
+2025-12-10 01:27:50,752 - INFO - Install with: pip install deep-sort-realtime
+2025-12-10 01:27:50,754 - INFO - === Enhanced Crowd Monitoring System ===
+2025-12-10 01:27:50,754 - INFO - Video source: 0
+2025-12-10 01:27:50,754 - INFO - YOLO model: model/yolov8n.pt
+2025-12-10 01:27:50,754 - INFO - Grid cell size: 2.0x2.0m
+2025-12-10 01:27:50,754 - INFO - Person radius: 0.6m
+2025-12-10 01:27:50,754 - INFO - Using tracker: Centroid
+2025-12-10 01:27:50,754 - INFO - Interactive features: Screenshots=True, Grid adjustment=True
+2025-12-10 01:27:50,754 - INFO - Initializing Enhanced Crowd Monitoring System...
+2025-12-10 01:27:50,754 - INFO - Loading YOLO model: model/yolov8n.pt
+2025-12-10 01:27:50,754 - INFO - Using existing model: model/yolov8n.pt
+2025-12-10 01:27:50,781 - INFO - YOLO model loaded successfully
+2025-12-10 01:27:50,781 - INFO - Trying primary camera source: 0
+2025-12-10 01:27:51,222 - INFO - Connected to camera source: 0
+2025-12-10 01:27:51,222 - INFO - Camera resolution: 1280x720
+2025-12-10 01:27:51,462 - INFO - Starting camera calibration...
+2025-12-10 01:27:51,482 - INFO - Click 4 ground reference points in clockwise order
+2025-12-10 01:27:51,483 - INFO - Press 'c' to continue after 4 points, or 'ESC' to cancel
+2025-12-10 01:27:52,664 - INFO - Clicked point 1: (204, 79)
+2025-12-10 01:27:53,296 - INFO - Clicked point 2: (1004, 78)
+2025-12-10 01:27:53,779 - INFO - Clicked point 3: (1057, 584)
+2025-12-10 01:27:54,319 - INFO - Clicked point 4: (226, 615)
+2025-12-10 01:27:57,236 - INFO - Calibration completed: 4.0x4.0m
+2025-12-10 01:27:57,236 - INFO - Grid initialized: 2x2 cells, capacity: 3 per cell
+2025-12-10 01:27:57,236 - INFO - Using simple centroid tracker
+2025-12-10 01:27:57,236 - INFO - 
+============================================================
+2025-12-10 01:27:57,236 - INFO - INTERACTIVE CONTROLS:
+2025-12-10 01:27:57,236 - INFO - ============================================================
+2025-12-10 01:27:57,236 - INFO -    '1' - Raw Camera
+2025-12-10 01:27:57,236 - INFO -    '2' - Grid Overlay
+2025-12-10 01:27:57,236 - INFO -    '3' - Detection View
+2025-12-10 01:27:57,236 - INFO -    '4' - Monitoring View
+2025-12-10 01:27:57,236 - INFO -    '5' - Split View
+2025-12-10 01:27:57,236 - INFO -    'q' - Quit
+2025-12-10 01:27:57,236 - INFO -    's' - Save screenshot
+2025-12-10 01:27:57,236 - INFO -    'g' - Toggle grid size
+2025-12-10 01:27:57,236 - INFO -    'r' - Reset to original grid
+2025-12-10 01:27:57,236 - INFO -    'f' - Show FPS info
+2025-12-10 01:27:57,236 - INFO - ============================================================
+
+2025-12-10 01:27:57,236 - INFO - Starting interactive video processing loop
+2025-12-10 01:27:58,629 - INFO - Display mode switched from Monitoring View to Split View
+2025-12-10 01:28:29,829 - INFO - Processing interrupted by user
+2025-12-10 01:28:30,139 - INFO - Monitoring completed successfully
