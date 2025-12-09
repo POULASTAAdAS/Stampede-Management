@@ -12,7 +12,7 @@ class MonitoringConfig:
     """Configuration class for crowd monitoring system"""
     # Video source settings
     source: Union[str, int] = "0"
-    model_path: str = "yolov8n.pt"
+    model_path: str = "model/yolov8n.pt"
 
     # Grid and spatial settings
     cell_width: float = 1.0
