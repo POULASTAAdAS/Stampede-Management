@@ -213,18 +213,9 @@ class DeepSortTracker:
 
             # Convert to TrackData format
             track_data_list = []
-            confirmed_count = 0
-            unconfirmed_count = 0
-
             for track in tracks:
-                # Check if track is confirmed
-                is_confirmed = not (hasattr(track, 'is_confirmed') and not track.is_confirmed())
-
-                if not is_confirmed:
-                    unconfirmed_count += 1
+                if hasattr(track, 'is_confirmed') and not track.is_confirmed():
                     continue
-
-                confirmed_count += 1
 
                 track_id = getattr(track, 'track_id', None)
                 if track_id is None:
@@ -233,7 +224,6 @@ class DeepSortTracker:
                 # Get bounding box
                 bbox = self._extract_bbox(track)
                 if bbox is None:
-                    logger.warning(f"Track {track_id}: Could not extract bbox")
                     continue
 
                 x1, y1, x2, y2 = bbox
@@ -245,10 +235,6 @@ class DeepSortTracker:
                     world_position=(cx, cy),
                     confidence=1.0
                 ))
-
-            if len(tracks) > 0:
-                logger.debug(
-                    f"DeepSort: {len(tracks)} total tracks, {confirmed_count} confirmed, {unconfirmed_count} unconfirmed, {len(track_data_list)} returned")
 
             return track_data_list
 
