@@ -2,6 +2,39 @@
 
 A modular real-time crowd monitoring and capacity management system using computer vision.
 
+## 📚 **NEW: Comprehensive Beginner-Friendly Documentation!**
+
+We've created extensive documentation perfect for beginners with only basic Python knowledge:
+
+- 🎓 **[BEGINNER_GUIDE.md](read/2_BEGINNER_GUIDE.md)** - Complete introduction (789 lines)
+   - Explains every concept in simple terms
+   - Perfect for those new to computer vision
+   - Includes analogies and step-by-step explanations
+
+- 🔍 **[CODE_WALKTHROUGH.md](read/4_CODE_WALKTHROUGH.md)** - Detailed code explanations (1,115 lines)
+   - Line-by-line code breakdowns
+   - Best practices and patterns
+   - Perfect for understanding implementation
+
+- 🎨 **[VISUAL_CONCEPTS.md](read/3_VISUAL_CONCEPTS.md)** - Visual diagrams (845 lines)
+   - ASCII art illustrations
+   - Data flow visualizations
+   - Perfect for visual learners
+
+- 🎯 **[PRACTICAL_EXAMPLES.md](read/5_PRACTICAL_EXAMPLES.md)** - Real usage examples (1,030 lines)
+   - Command-line examples
+   - Troubleshooting solutions
+   - Customization guides
+
+- 📖 **[DOCUMENTATION_INDEX.md](read/1_DOCUMENTATION_INDEX.md)** - Navigation guide
+   - Find the right document for your needs
+   - Learning paths for different skill levels
+   - Quick reference table
+
+**Total: 3,779 lines of beginner-friendly documentation!**
+
+👉 **Start here:** [DOCUMENTATION_INDEX.md](read/1_DOCUMENTATION_INDEX.md) to find the best learning path for you!
+
 ## 🏗️ Project Structure
 
 ```
