@@ -174,26 +174,57 @@ class DeepSortTracker:
             List of current TrackData objects
         """
         try:
+            # Ensure detections is a list
+            if not isinstance(detections, (list, tuple)):
+                logger.warning(f"Detections is not a list/tuple: {type(detections)}")
+                detections = []
+
             if not detections:
                 tracks = self.tracker.update_tracks([], frame=frame)
             else:
-                # Format detections for DeepSort (x, y, w, h, confidence)
+                # Format detections for DeepSort
+                # DeepSort expects: List[Tuple[List[x, y, w, h], confidence, class]]
                 formatted_detections = []
-                for det in detections:
-                    if len(det) >= 4:
-                        x1, y1, x2, y2 = det[:4]
-                        w, h = x2 - x1, y2 - y1
-                        conf = det[4] if len(det) > 4 else 0.9
-                        if w > 0 and h > 0:
-                            formatted_detections.append([float(x1), float(y1), float(w), float(h), float(conf)])
+
+                for i, det in enumerate(detections):
+                    try:
+                        # Handle detection - ensure it's a list/array-like object
+                        if not hasattr(det, '__len__'):
+                            logger.warning(f"Detection {i} is not a sequence: {type(det)} = {det}")
+                            continue
+
+                        if len(det) >= 4:
+                            x1, y1, x2, y2 = det[:4]
+                            w, h = x2 - x1, y2 - y1
+                            conf = det[4] if len(det) > 4 else 0.9
+
+                            # Ensure valid box dimensions
+                            if w > 0 and h > 0:
+                                # DeepSort expects: ([left, top, w, h], confidence, class)
+                                bbox = [float(x1), float(y1), float(w), float(h)]
+                                formatted_detections.append((bbox, float(conf), 'person'))
+                        else:
+                            logger.warning(f"Detection {i} has insufficient elements: {len(det)}")
+                    except Exception as det_err:
+                        logger.warning(f"Failed to format detection {i}: {det_err}, det={det}")
+                        continue
 
                 tracks = self.tracker.update_tracks(formatted_detections, frame=frame)
 
             # Convert to TrackData format
             track_data_list = []
+            confirmed_count = 0
+            unconfirmed_count = 0
+
             for track in tracks:
-                if hasattr(track, 'is_confirmed') and not track.is_confirmed():
+                # Check if track is confirmed
+                is_confirmed = not (hasattr(track, 'is_confirmed') and not track.is_confirmed())
+
+                if not is_confirmed:
+                    unconfirmed_count += 1
                     continue
+
+                confirmed_count += 1
 
                 track_id = getattr(track, 'track_id', None)
                 if track_id is None:
@@ -202,6 +233,7 @@ class DeepSortTracker:
                 # Get bounding box
                 bbox = self._extract_bbox(track)
                 if bbox is None:
+                    logger.warning(f"Track {track_id}: Could not extract bbox")
                     continue
 
                 x1, y1, x2, y2 = bbox
@@ -213,6 +245,10 @@ class DeepSortTracker:
                     world_position=(cx, cy),
                     confidence=1.0
                 ))
+
+            if len(tracks) > 0:
+                logger.debug(
+                    f"DeepSort: {len(tracks)} total tracks, {confirmed_count} confirmed, {unconfirmed_count} unconfirmed, {len(track_data_list)} returned")
 
             return track_data_list
 

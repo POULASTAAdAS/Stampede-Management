@@ -131,8 +131,13 @@ class PersonDetector:
             detections = []
             h_img, w_img = frame.shape[:2]
 
+            total_boxes = 0
+            filtered_by_area = 0
+            filtered_by_conf = 0
+
             for result in results:
                 if hasattr(result, 'boxes') and result.boxes is not None:
+                    total_boxes += len(result.boxes)
                     for box in result.boxes:
                         try:
                             xyxy = box.xyxy[0].cpu().numpy() if hasattr(box.xyxy[0], 'cpu') else np.array(box.xyxy[0])
@@ -152,11 +157,19 @@ class PersonDetector:
 
                         area = (x2 - x1) * (y2 - y1)
                         if area < self.config.min_bbox_area:
+                            filtered_by_area += 1
+                            logger.debug(
+                                f"Filtered detection: area={area:.0f} < min_area={self.config.min_bbox_area}, conf={conf:.2f}")
                             continue
 
                         detections.append([x1, y1, x2, y2, conf])
 
-            logger.debug(f"Detected {len(detections)} persons")
+            if len(detections) > 0:
+                logger.info(
+                    f"Detected {len(detections)} persons (total_boxes={total_boxes}, filtered_by_area={filtered_by_area})")
+            else:
+                logger.warning(
+                    f"No detections found! total_boxes={total_boxes}, filtered_by_area={filtered_by_area}, conf_threshold={self.config.confidence_threshold}, min_area={self.config.min_bbox_area}")
             return detections
 
         except Exception as e:

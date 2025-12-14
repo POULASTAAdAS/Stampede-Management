@@ -253,6 +253,13 @@ class CrowdMonitor:
                 # Process frame
                 tracks = self._process_frame(frame)
 
+                # Debug logging for tracking issues
+                if self.frame_count % 30 == 0:  # Log every 30 frames
+                    logger.info(f"Frame {self.frame_count}: {len(tracks)} tracks, Mode: {self.current_mode}")
+                    if tracks:
+                        for track in tracks[:3]:  # Show first 3 tracks
+                            logger.info(f"  Track {track.track_id}: bbox={track.bbox}, pos={track.world_position}")
+
                 # Update occupancy grid (only for monitoring modes)
                 if self.current_mode in ['4', '5']:
                     self.occupancy_grid.update(tracks, dt)
@@ -301,6 +308,17 @@ class CrowdMonitor:
         if self.frame_count % self.config.detect_every == 0:
             detections = self.detector.detect_persons(frame)
             self.last_detection_frame = self.frame_count
+
+            # Validate detections format
+            if detections:
+                # Ensure detections is a proper list of lists
+                validated_detections = []
+                for i, det in enumerate(detections):
+                    if hasattr(det, '__len__') and not isinstance(det, str):
+                        validated_detections.append(det)
+                    else:
+                        logger.warning(f"Invalid detection at index {i}: {type(det)} = {det}")
+                detections = validated_detections
 
         if self.tracker is not None:
             tracks = self.tracker.update_tracks(detections, frame)

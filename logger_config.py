@@ -7,7 +7,7 @@ import sys
 
 # Configure logging with ASCII-safe formatting
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Changed to DEBUG for troubleshooting
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
