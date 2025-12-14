@@ -37,7 +37,7 @@ def parse_arguments() -> MonitoringConfig:
                         help="Grid cell width in meters")
     parser.add_argument("--cell-height", type=float, default=2.0,
                         help="Grid cell height in meters")
-    parser.add_argument("--person-radius", type=float, default=0.6,
+    parser.add_argument("--person-radius", type=float, default=2,
                         help="Person radius for capacity calculation (meters)")
 
     # Detection parameters
