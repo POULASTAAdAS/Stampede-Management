@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 import cv2
 import numpy as np
 
+from config import MonitoringConfig
 from geometry import GeometryProcessor
 from logger_config import get_logger
 
@@ -17,8 +18,13 @@ logger = get_logger(__name__)
 class CameraCalibrator:
     """Handles camera calibration for perspective transformation"""
 
-    def __init__(self):
-        """Initialize camera calibrator"""
+    def __init__(self, config: Optional[MonitoringConfig] = None):
+        """Initialize camera calibrator
+        
+        Args:
+            config: Optional monitoring configuration for visual settings
+        """
+        self.config = config if config is not None else MonitoringConfig()
         self.geometry_processor: Optional[GeometryProcessor] = None
         self.world_width = 0.0
         self.world_height = 0.0
@@ -95,17 +101,21 @@ class CameraCalibrator:
 
                 # Draw clicked points
                 for i, point in enumerate(clicked_points):
-                    cv2.circle(display_frame, point, 8, (0, 255, 0), -1)
-                    cv2.circle(display_frame, point, 10, (255, 255, 255), 2)
+                    cv2.circle(display_frame, point, self.config.calibration_point_radius,
+                               self.config.calibration_point_color, -1)
+                    cv2.circle(display_frame, point, self.config.calibration_point_radius + 2,
+                               self.config.calibration_point_outline_color, 2)
                     cv2.putText(display_frame, f"{i + 1}", (point[0] + 12, point[1] - 12),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                                cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_large,
+                                self.config.calibration_point_color, 2)
 
                 # Draw lines connecting points
                 if len(clicked_points) > 1:
                     for i in range(len(clicked_points)):
                         next_i = (i + 1) % len(clicked_points)
                         if next_i < len(clicked_points):
-                            cv2.line(display_frame, clicked_points[i], clicked_points[next_i], (0, 255, 255), 2)
+                            cv2.line(display_frame, clicked_points[i], clicked_points[next_i],
+                                     self.config.calibration_line_color, self.config.calibration_line_thickness)
 
                 # Add instructions
                 instructions = [
@@ -118,7 +128,7 @@ class CameraCalibrator:
                 for instruction in instructions:
                     cv2.rectangle(display_frame, (10, y_pos - 25), (400, y_pos + 5), (0, 0, 0), -1)
                     cv2.putText(display_frame, instruction, (15, y_pos),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                                cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium, (0, 255, 0), 2)
                     y_pos += 35
 
                 cv2.imshow(window_name, display_frame)
@@ -190,12 +200,21 @@ class CameraCalibrator:
 
     def _get_world_dimensions(self) -> Tuple[Optional[float], Optional[float]]:
         """
-        Get real-world dimensions from user.
+        Get real-world dimensions from user or config.
         
         Returns:
             Tuple of (width, height) in meters or (None, None)
         """
         try:
+            # Check if auto-calibration is enabled (use preset dimensions)
+            if self.config.auto_calibration:
+                width = self.config.calibration_area_width
+                height = self.config.calibration_area_height
+                logger.info(f"Using preset calibration dimensions: {width}m x {height}m")
+                print(f"\nUsing preset calibration dimensions: {width}m x {height}m")
+                return width, height
+
+            # Manual input
             print("\nEnter the real-world dimensions of the calibrated area:")
 
             while True:

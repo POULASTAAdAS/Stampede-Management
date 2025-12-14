@@ -4,7 +4,7 @@ Handles all drawing and display operations.
 """
 
 import time
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -44,7 +44,7 @@ class MonitorVisualizer:
             geometry_processor: Geometry processor for coordinate conversion
             occupancy_grid: Occupancy grid for dimensions
         """
-        grid_color = (100, 255, 100)
+        grid_color = self.config.grid_color
         thickness = self.config.grid_line_thickness
 
         for i in range(occupancy_grid.grid_rows + 1):
@@ -74,11 +74,12 @@ class MonitorVisualizer:
             track: Track to visualize
         """
         x1, y1, x2, y2 = track.bbox
-        cv2.rectangle(view, (x1, y1), (x2, y2), (0, 255, 0), self.config.bbox_thickness)
+        cv2.rectangle(view, (x1, y1), (x2, y2), self.config.bbox_color, self.config.bbox_thickness)
         id_text = f"ID:{track.track_id}"
-        text_size = cv2.getTextSize(id_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
-        cv2.rectangle(view, (x1, y1 - 30), (x1 + text_size[0] + 10, y1), (0, 255, 0), -1)
-        cv2.putText(view, id_text, (x1 + 5, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
+        text_size = cv2.getTextSize(id_text, cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium, 2)[0]
+        cv2.rectangle(view, (x1, y1 - 30), (x1 + text_size[0] + 10, y1), self.config.track_id_bg_color, -1)
+        cv2.putText(view, id_text, (x1 + 5, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium,
+                    self.config.track_id_text_color, 2)
 
     def draw_track_annotation(self, view: np.ndarray, track: TrackData, occupancy_grid: OccupancyGrid):
         """
@@ -90,20 +91,22 @@ class MonitorVisualizer:
             occupancy_grid: Occupancy grid for cell lookup
         """
         x1, y1, x2, y2 = track.bbox
-        cv2.rectangle(view, (x1, y1), (x2, y2), (0, 255, 0), self.config.bbox_thickness)
+        cv2.rectangle(view, (x1, y1), (x2, y2), self.config.bbox_color, self.config.bbox_thickness)
         id_text = f"ID:{track.track_id}"
-        text_size = cv2.getTextSize(id_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
-        cv2.rectangle(view, (x1, y1 - 30), (x1 + text_size[0] + 10, y1), (0, 255, 0), -1)
-        cv2.putText(view, id_text, (x1 + 5, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2)
+        text_size = cv2.getTextSize(id_text, cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium, 2)[0]
+        cv2.rectangle(view, (x1, y1 - 30), (x1 + text_size[0] + 10, y1), self.config.track_id_bg_color, -1)
+        cv2.putText(view, id_text, (x1 + 5, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium,
+                    self.config.track_id_text_color, 2)
 
         # Draw cell information
         cell = occupancy_grid.get_cell_for_track(track)
         if cell is not None:
             row, col = cell
             cell_text = f"Cell({row},{col})"
-            cell_size = cv2.getTextSize(cell_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
-            cv2.rectangle(view, (x1, y2 + 5), (x1 + cell_size[0] + 10, y2 + 25), (255, 255, 0), -1)
-            cv2.putText(view, cell_text, (x1 + 5, y2 + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1)
+            cell_size = cv2.getTextSize(cell_text, cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_small, 1)[0]
+            cv2.rectangle(view, (x1, y2 + 5), (x1 + cell_size[0] + 10, y2 + 25), self.config.cell_label_bg_color, -1)
+            cv2.putText(view, cell_text, (x1 + 5, y2 + 18), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_small,
+                        self.config.cell_label_text_color, 1)
 
     def draw_cell_occupancy_overlay(self, view: np.ndarray, geometry_processor: GeometryProcessor,
                                     occupancy_grid: OccupancyGrid):
@@ -125,14 +128,14 @@ class MonitorVisualizer:
                 occupancy_text = f"{count_val:.1f}/{occupancy_grid.cell_capacity}"
 
                 if count_val > occupancy_grid.cell_capacity:
-                    bg_color = (0, 0, 255)  # Red for overcapacity
-                    text_color = (255, 255, 255)
-                elif count_val > occupancy_grid.cell_capacity * 0.8:
-                    bg_color = (0, 165, 255)  # Orange for warning
-                    text_color = (0, 0, 0)
+                    bg_color = self.config.occupancy_critical_color
+                    text_color = self.config.occupancy_critical_text_color
+                elif count_val > occupancy_grid.cell_capacity * self.config.occupancy_warning_threshold:
+                    bg_color = self.config.occupancy_warning_color
+                    text_color = self.config.occupancy_normal_text_color
                 else:
-                    bg_color = (0, 255, 0)  # Green for normal
-                    text_color = (0, 0, 0)
+                    bg_color = self.config.occupancy_normal_color
+                    text_color = self.config.occupancy_normal_text_color
 
                 text_size = cv2.getTextSize(occupancy_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)[0]
                 padding = 5
@@ -159,19 +162,22 @@ class MonitorVisualizer:
             show_fps: Whether to show FPS
         """
         overlay = view.copy()
-        cv2.rectangle(overlay, (10, 10), (350, 80), (0, 0, 0), -1)
-        cv2.putText(overlay, f"Mode: {mode_name}", (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.rectangle(overlay, (10, 10), (350, 80), self.config.info_overlay_bg_color, -1)
+        cv2.putText(overlay, f"Mode: {mode_name}", (20, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                    self.config.font_size_medium, (255, 255, 255), 2)
         cv2.putText(overlay, f"Resolution: {self.camera_width}x{self.camera_height}", (20, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+                    cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_tiny, (255, 255, 255), 1)
 
         if show_fps and len(fps_counter) > 5:
             elapsed = time.time() - fps_start_time
             fps = len(fps_counter) / max(elapsed, 1)
-            cv2.putText(overlay, f"FPS: {fps:.1f}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 255), 1)
+            cv2.putText(overlay, f"FPS: {fps:.1f}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX,
+                        self.config.font_size_tiny, (0, 255, 255), 1)
 
         timestamp = time.strftime("%H:%M:%S")
-        cv2.putText(overlay, timestamp, (10, view.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.addWeighted(view, 0.8, overlay, 0.2, 0, view)
+        cv2.putText(overlay, timestamp, (10, view.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                    self.config.font_size_small, (255, 255, 255), 1)
+        cv2.addWeighted(view, 1.0 - self.config.info_overlay_alpha, overlay, self.config.info_overlay_alpha, 0, view)
 
     def create_info_panel(self, width: int, tracks: List[TrackData], occupancy_grid: OccupancyGrid,
                           frame_count: int, display_mode: str, tracker, fps_counter: list,
@@ -193,8 +199,9 @@ class MonitorVisualizer:
         Returns:
             Information panel image
         """
-        panel_height = 120
+        panel_height = self.config.info_panel_height
         panel = np.zeros((panel_height, width, 3), dtype=np.uint8)
+        panel[:] = self.config.info_panel_background_color
 
         total_people = len(tracks)
         total_capacity = occupancy_grid.grid_rows * occupancy_grid.grid_cols * occupancy_grid.cell_capacity
@@ -203,28 +210,34 @@ class MonitorVisualizer:
         info_text = (f"People: {total_people} | Capacity: {total_capacity} | "
                      f"Grid: {occupancy_grid.grid_rows}x{occupancy_grid.grid_cols} | "
                      f"Cell: {self.config.cell_width:.1f}x{self.config.cell_height:.1f}m")
-        cv2.putText(panel, info_text, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+        cv2.putText(panel, info_text, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium,
+                    (255, 255, 255), 1)
 
         if alert_count > 0:
             alert_text = f"ALERTS: {alert_count} cells over capacity!"
-            cv2.putText(panel, alert_text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+            cv2.putText(panel, alert_text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium,
+                        (0, 0, 255), 2)
         else:
             status_text = "All cells within capacity"
-            cv2.putText(panel, status_text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+            cv2.putText(panel, status_text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_medium,
+                        (0, 255, 0), 1)
 
         perf_text = f"Frame: {frame_count} | Mode: {display_mode}"
         if show_fps and len(fps_counter) > 5:
             elapsed = time.time() - fps_start_time
             fps = len(fps_counter) / max(elapsed, 1)
             perf_text += f" | FPS: {fps:.1f}"
-        cv2.putText(panel, perf_text, (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
+        cv2.putText(panel, perf_text, (10, 75), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_small,
+                    (180, 180, 180), 1)
 
         controls_text = "Controls: 1-5 (modes) | s (screenshot) | g (grid) | r (reset) | f (fps) | q (quit)"
-        cv2.putText(panel, controls_text, (10, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (120, 120, 120), 1)
+        cv2.putText(panel, controls_text, (10, 95), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_tiny,
+                    (120, 120, 120), 1)
 
         tracker_type = "DeepSort" if isinstance(tracker, DeepSortTracker) else "Centroid"
         tracker_text = f"Tracker: {tracker_type}"
-        cv2.putText(panel, tracker_text, (10, 115), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
+        cv2.putText(panel, tracker_text, (10, 115), cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_tiny,
+                    (180, 180, 180), 1)
 
         return panel
 
@@ -242,11 +255,12 @@ class MonitorVisualizer:
             Bird's eye view image
         """
         scale = min(self.config.max_birdseye_pixels / max(occupancy_grid.world_width,
-                                                          occupancy_grid.world_height), 200.0)
+                                                          occupancy_grid.world_height),
+                    self.config.birdseye_max_scale_fallback)
         view_width = int(occupancy_grid.world_width * scale)
         view_height = int(occupancy_grid.world_height * scale)
 
-        view = np.zeros((view_height, view_width, 3), dtype=np.uint8) + 40
+        view = np.zeros((view_height, view_width, 3), dtype=np.uint8) + self.config.birdseye_background_value
 
         self._draw_occupancy_heatmap(view, scale, occupancy_grid)
         self._draw_birdseye_grid(view, scale, occupancy_grid)
@@ -280,7 +294,8 @@ class MonitorVisualizer:
                 color = self._get_occupancy_color(count, occupancy_grid.cell_capacity)
                 cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
 
-        cv2.addWeighted(overlay, 0.6, view, 0.4, 0, view)
+        cv2.addWeighted(overlay, self.config.birdseye_overlay_alpha, view,
+                        1.0 - self.config.birdseye_overlay_alpha, 0, view)
 
     def _get_occupancy_color(self, occupancy: float, cell_capacity: int) -> Tuple[int, int, int]:
         """Get color for occupancy level"""
@@ -304,7 +319,7 @@ class MonitorVisualizer:
 
     def _draw_birdseye_grid(self, view: np.ndarray, scale: float, occupancy_grid: OccupancyGrid):
         """Draw grid lines on bird's eye view"""
-        grid_color = (120, 120, 120)
+        grid_color = self.config.birdseye_grid_color
 
         for col in range(occupancy_grid.grid_cols + 1):
             x = int(col * self.config.cell_width * scale)
@@ -323,15 +338,15 @@ class MonitorVisualizer:
 
                 coord_text = f"({row},{col})"
                 cv2.putText(view, coord_text, (center_x - 25, center_y - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 200, 200), 1)
+                            cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_birdseye, (200, 200, 200), 1)
 
                 count_text = f"{occupancy_grid.ema_counts[row, col]:.1f}"
                 cv2.putText(view, count_text, (center_x - 15, center_y + 5),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+                            cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_tiny, (255, 255, 255), 1)
 
                 if occupancy_grid.notified[row, col]:
                     cv2.rectangle(view, (center_x - 20, center_y - 15), (center_x + 20, center_y + 15),
-                                  (0, 0, 255), 2)
+                                  self.config.birdseye_alert_box_color, 2)
 
     def _draw_birdseye_tracks(self, view: np.ndarray, tracks: List[TrackData], scale: float,
                               geometry_processor: GeometryProcessor):
@@ -346,10 +361,12 @@ class MonitorVisualizer:
             py = int(centroid.y * scale)
 
             if 0 <= px < view.shape[1] and 0 <= py < view.shape[0]:
-                cv2.circle(view, (px, py), 6, (0, 255, 0), -1)
-                cv2.circle(view, (px, py), 6, (255, 255, 255), 1)
+                cv2.circle(view, (px, py), self.config.birdseye_person_radius,
+                           self.config.birdseye_person_color, -1)
+                cv2.circle(view, (px, py), self.config.birdseye_person_radius,
+                           self.config.birdseye_person_outline_color, 1)
                 cv2.putText(view, f"{track.track_id}", (px + 8, py + 3),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.FONT_HERSHEY_SIMPLEX, self.config.font_size_birdseye, (255, 255, 255), 1)
 
     def _create_birdseye_legend(self, width: int, occupancy_grid: OccupancyGrid) -> np.ndarray:
         """Create legend for bird's eye view"""
@@ -368,7 +385,8 @@ class MonitorVisualizer:
         for label, color in legend_items:
             cv2.rectangle(legend, (x_pos, 15), (x_pos + 15, 30), color, -1)
             cv2.rectangle(legend, (x_pos, 15), (x_pos + 15, 30), (255, 255, 255), 1)
-            cv2.putText(legend, label, (x_pos, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
+            cv2.putText(legend, label, (x_pos, 45), cv2.FONT_HERSHEY_SIMPLEX,
+                        self.config.font_size_birdseye, (255, 255, 255), 1)
             x_pos += 60
 
         total_occupancy = float(np.sum(occupancy_grid.ema_counts))
@@ -376,6 +394,7 @@ class MonitorVisualizer:
         alert_cells = int(np.sum(occupancy_grid.notified))
 
         stats_text = f"Total: {total_occupancy:.1f} | Avg: {avg_occupancy:.1f} | Alerts: {alert_cells}"
-        cv2.putText(legend, stats_text, (x_pos + 20, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        cv2.putText(legend, stats_text, (x_pos + 20, 25), cv2.FONT_HERSHEY_SIMPLEX,
+                    self.config.font_size_tiny, (255, 255, 255), 1)
 
         return legend

@@ -123,7 +123,7 @@ class OccupancyGrid:
                     self.notified[row, col] = True
 
                 if (self.notified[row, col] and
-                        self.ema_counts[row, col] <= max(0, self.cell_capacity - 0.5)):
+                        self.ema_counts[row, col] <= max(0, self.cell_capacity - self.config.alert_clear_offset)):
                     logger.info(f"Alert cleared for cell ({row},{col})")
                     self.notified[row, col] = False
 

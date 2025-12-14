@@ -95,7 +95,7 @@ class CrowdMonitor:
                 cap.release()
                 return False
 
-            self.calibrator = CameraCalibrator()
+            self.calibrator = CameraCalibrator(self.config)
             if not self.calibrator.calibrate(frame):
                 cap.release()
                 return False
@@ -144,9 +144,9 @@ class CrowdMonitor:
             cap = cv2.VideoCapture(source)
 
             if cap.isOpened():
-                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-                cap.set(cv2.CAP_PROP_FPS, 30)
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
+                cap.set(cv2.CAP_PROP_FPS, self.config.camera_fps)
                 logger.info(f"Connected to camera source: {source}")
                 return cap
 
@@ -160,9 +160,9 @@ class CrowdMonitor:
                     cap = cv2.VideoCapture(fallback_source)
 
                     if cap.isOpened():
-                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-                        cap.set(cv2.CAP_PROP_FPS, 30)
+                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
+                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
+                        cap.set(cv2.CAP_PROP_FPS, self.config.camera_fps)
                         logger.info(f"Connected to fallback camera: {fallback_source}")
                         return cap
 
@@ -198,7 +198,7 @@ class CrowdMonitor:
             logger.info("Using simple centroid tracker")
             self.tracker = SimpleCentroidTracker(
                 max_age=self.config.max_age,
-                distance_threshold=80.0
+                distance_threshold=self.config.centroid_distance_threshold
             )
 
         except Exception as e:
@@ -247,7 +247,7 @@ class CrowdMonitor:
 
                 # Update FPS tracking
                 self.fps_counter.append(current_time)
-                if len(self.fps_counter) > 30:
+                if len(self.fps_counter) > self.config.fps_counter_window:
                     self.fps_counter.pop(0)
 
                 # Process frame
@@ -380,8 +380,8 @@ class CrowdMonitor:
     def _create_split_view(self, frame: np.ndarray, tracks: List[TrackData],
                            show_fps: bool) -> np.ndarray:
         """Create split view showing multiple perspectives"""
-        small_height = self.camera_height // 2
-        small_width = self.camera_width // 2
+        small_height = self.camera_height // self.config.split_view_divisor
+        small_width = self.camera_width // self.config.split_view_divisor
 
         raw_small = cv2.resize(self._create_raw_camera_view(frame, False), (small_width, small_height))
         grid_small = cv2.resize(self._create_grid_overlay_view(frame, False), (small_width, small_height))
@@ -420,15 +420,19 @@ class CrowdMonitor:
         """Toggle between different grid sizes"""
         current_cells = self.occupancy_grid.grid_rows * self.occupancy_grid.grid_cols
 
-        if current_cells <= 24:
-            new_width = self.original_cell_width * 0.67
-            new_height = self.original_cell_height * 0.67
-        elif current_cells <= 48:
-            new_width = self.original_cell_width * 0.5
-            new_height = self.original_cell_height * 0.5
-        else:
-            new_width = self.original_cell_width
-            new_height = self.original_cell_height
+        # Determine which multiplier to use based on thresholds
+        multiplier_index = 0
+        for threshold in self.config.grid_toggle_cell_thresholds:
+            if current_cells <= threshold:
+                multiplier_index += 1
+                break
+
+        if multiplier_index >= len(self.config.grid_toggle_multipliers):
+            multiplier_index = 0
+
+        multiplier = self.config.grid_toggle_multipliers[multiplier_index]
+        new_width = self.original_cell_width * multiplier
+        new_height = self.original_cell_height * multiplier
 
         self.config.cell_width = new_width
         self.config.cell_height = new_height

@@ -70,6 +70,14 @@ def parse_arguments() -> MonitoringConfig:
     parser.add_argument("--disable-grid-adjustment", action="store_true",
                         help="Disable runtime grid adjustment")
 
+    # Calibration area
+    parser.add_argument("--calibration-width", type=float, default=10.0,
+                        help="Calibration area width in meters")
+    parser.add_argument("--calibration-height", type=float, default=10.0,
+                        help="Calibration area height in meters")
+    parser.add_argument("--auto-calibration", action="store_true",
+                        help="Use preset calibration dimensions (skip manual input)")
+
     args = parser.parse_args()
 
     # Create configuration object
@@ -89,7 +97,10 @@ def parse_arguments() -> MonitoringConfig:
         fps=args.fps,
         hysteresis_time=args.hysteresis,
         enable_screenshots=not args.disable_screenshots,
-        enable_grid_adjustment=not args.disable_grid_adjustment
+        enable_grid_adjustment=not args.disable_grid_adjustment,
+        calibration_area_width=args.calibration_width,
+        calibration_area_height=args.calibration_height,
+        auto_calibration=args.auto_calibration
     )
 
     return config

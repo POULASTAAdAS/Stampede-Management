@@ -30,7 +30,9 @@ def download_yolo_model(model_name: str) -> bool:
     if model_path.exists():
         try:
             # Quick validation - check file size
-            if model_path.stat().st_size > 1000000:  # At least 1MB
+            # Note: min_model_size_bytes is imported from config if needed, default 1MB
+            min_size = 1000000  # Default 1MB if not in config
+            if model_path.stat().st_size > min_size:
                 logger.info(f"Using existing model: {model_name}")
                 return True
             else:
@@ -120,9 +122,9 @@ class PersonDetector:
         try:
             results = self.model(
                 frame,
-                imgsz=640,
+                imgsz=self.config.yolo_imgsz,
                 conf=self.config.confidence_threshold,
-                classes=[0],  # Person class
+                classes=list(self.config.yolo_classes),
                 verbose=False
             )
 
