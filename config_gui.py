@@ -1,6 +1,7 @@
 """
 GUI application for managing crowd monitoring system configuration.
 Allows users to easily configure all parameters and run the system.
+With MAC-based license protection.
 """
 
 import json
@@ -11,7 +12,132 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from typing import Dict, Any, Optional
 
+from auth.license_manager import LicenseManager
 from config import MonitoringConfig
+
+sys.path.insert(0, 'auth')
+
+
+class LicenseDialog:
+    """Dialog for entering and activating license"""
+
+    def __init__(self, parent):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("License Activation Required")
+        self.dialog.geometry("500x300")
+        self.dialog.resizable(False, False)
+
+        # Make dialog modal
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+
+        # Center the dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (500 // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (300 // 2)
+        self.dialog.geometry(f"500x300+{x}+{y}")
+
+        self._setup_ui()
+
+    def _setup_ui(self):
+        """Setup the license dialog UI"""
+        # Title
+        title_frame = ttk.Frame(self.dialog)
+        title_frame.pack(fill=tk.X, padx=20, pady=20)
+
+        ttk.Label(title_frame,
+                  text="License Activation Required",
+                  font=("", 14, "bold")).pack()
+
+        ttk.Label(title_frame,
+                  text="Please enter your license key to activate the application",
+                  font=("", 9)).pack(pady=(5, 0))
+
+        # Machine info
+        info_frame = ttk.LabelFrame(self.dialog, text="Machine Information", padding=10)
+        info_frame.pack(fill=tk.X, padx=20, pady=10)
+
+        import os
+        license_path = os.path.join('auth', 'license.dat')
+        manager = LicenseManager(license_file=license_path)
+
+        info_text = f"MAC Address: {manager.get_mac_address()}\n"
+        info_text += f"Machine ID: {manager.get_machine_id()[:16]}..."
+
+        ttk.Label(info_frame, text=info_text, font=("Courier", 8)).pack()
+
+        # License key entry
+        key_frame = ttk.Frame(self.dialog)
+        key_frame.pack(fill=tk.X, padx=20, pady=10)
+
+        ttk.Label(key_frame, text="License Key:").pack(anchor=tk.W)
+
+        self.license_text = tk.Text(key_frame, height=4, wrap=tk.WORD)
+        self.license_text.pack(fill=tk.X, pady=(5, 0))
+
+        # Buttons
+        button_frame = ttk.Frame(self.dialog)
+        button_frame.pack(fill=tk.X, padx=20, pady=20)
+
+        ttk.Button(button_frame, text="Activate",
+                   command=self._activate).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(button_frame, text="Cancel",
+                   command=self._cancel).pack(side=tk.RIGHT)
+        ttk.Button(button_frame, text="Request License",
+                   command=self._request_license).pack(side=tk.LEFT)
+
+    def _request_license(self):
+        """Show information for requesting a license"""
+        import os
+        license_path = os.path.join('auth', 'license.dat')
+        manager = LicenseManager(license_file=license_path)
+
+        info = f"""To request a license, please send the following information to support:
+
+Machine ID: {manager.get_machine_id()}
+MAC Address: {manager.get_mac_address()}
+
+Email: support@yourcompany.com
+"""
+        messagebox.showinfo("Request License", info)
+
+    def _activate(self):
+        """Activate the license"""
+        license_key = self.license_text.get("1.0", tk.END).strip()
+
+        if not license_key:
+            messagebox.showerror("Error", "Please enter a license key")
+            return
+
+        import os
+        license_path = os.path.join('auth', 'license.dat')
+        manager = LicenseManager(license_file=license_path)
+
+        # Try to save and validate the license
+        if manager.save_license(license_key):
+            is_valid, message = manager.validate_license()
+
+            if is_valid:
+                self.result = True
+                messagebox.showinfo("Success", "License activated successfully!")
+                self.dialog.destroy()
+            else:
+                messagebox.showerror("Invalid License", message)
+                self.result = False
+        else:
+            messagebox.showerror("Error", "Failed to save license file")
+            self.result = False
+
+    def _cancel(self):
+        """Cancel activation"""
+        self.result = False
+        self.dialog.destroy()
+
+    def show(self):
+        """Show the dialog and return result"""
+        self.dialog.wait_window()
+        return self.result
 
 
 class ConfigurationGUI:
@@ -20,13 +146,23 @@ class ConfigurationGUI:
     def __init__(self, root: tk.Tk):
         """
         Initialize the configuration GUI.
-        
+
         Args:
             root: Root tkinter window
         """
         self.root = root
         self.root.title("Crowd Monitoring System - Configuration Manager")
         self.root.geometry("1000x800")
+
+        # Initialize license manager with correct path
+        import os
+        license_path = os.path.join('auth', 'license.dat')
+        self.license_manager = LicenseManager(license_file=license_path)
+
+        # Check license before showing UI
+        if not self._check_license():
+            self.root.destroy()
+            return
 
         # Configuration storage
         self.config = MonitoringConfig()
@@ -39,6 +175,59 @@ class ConfigurationGUI:
 
         # Load default values
         self._load_config_to_ui()
+
+        # Start periodic license check
+        self._schedule_license_check()
+
+    def _check_license(self) -> bool:
+        """
+        Check if a valid license exists.
+
+        Returns:
+            True if license is valid, False otherwise
+        """
+        is_valid, message = self.license_manager.validate_license()
+
+        if is_valid:
+            # Show license info in status
+            license_info = self.license_manager.get_license_info()
+            if license_info:
+                days = license_info.get('days_remaining', 0)
+                if days < 30:
+                    messagebox.showwarning(
+                        "License Expiring Soon",
+                        f"Your license will expire in {days} days. Please renew soon."
+                    )
+            return True
+        else:
+            # Show license dialog
+            messagebox.showwarning("License Required", message)
+
+            dialog = LicenseDialog(self.root)
+            result = dialog.show()
+
+            if not result:
+                messagebox.showerror(
+                    "License Required",
+                    "A valid license is required to use this application."
+                )
+                return False
+
+            return True
+
+    def _schedule_license_check(self):
+        """Schedule periodic license validation"""
+        # Check license every 5 minutes
+        is_valid, message = self.license_manager.validate_license()
+
+        if not is_valid:
+            messagebox.showerror("License Invalid",
+                                 f"License validation failed: {message}\n\nApplication will close.")
+            self.root.destroy()
+            return
+
+        # Schedule next check
+        self.root.after(300000, self._schedule_license_check)  # 5 minutes
 
     def _setup_ui(self):
         """Setup the user interface"""
@@ -68,6 +257,7 @@ class ConfigurationGUI:
         ttk.Button(button_frame, text="Load Config", command=self._load_config_file).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Save Config", command=self._save_config_file).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Reset to Defaults", command=self._reset_to_defaults).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="License Info", command=self._show_license_info).pack(side=tk.LEFT, padx=5)
 
         # Spacer
         ttk.Frame(button_frame).pack(side=tk.LEFT, expand=True)
@@ -81,10 +271,27 @@ class ConfigurationGUI:
                                       command=self._stop_monitor, state=tk.DISABLED)
         self.stop_button.pack(side=tk.RIGHT, padx=5)
 
-        # Status bar
+        # Status bar with license info
+        status_frame = ttk.Frame(main_frame)
+        status_frame.pack(fill=tk.X, pady=(5, 0))
+
         self.status_var = tk.StringVar(value="Ready")
-        status_bar = ttk.Label(main_frame, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W)
-        status_bar.pack(fill=tk.X, pady=(5, 0))
+        status_bar = ttk.Label(status_frame, textvariable=self.status_var,
+                               relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        # License status
+        license_info = self.license_manager.get_license_info()
+        if license_info:
+            days = license_info.get('days_remaining', 0)
+            license_text = f"Licensed | {days} days remaining"
+        else:
+            license_text = "License: Unknown"
+
+        self.license_status_var = tk.StringVar(value=license_text)
+        license_status = ttk.Label(status_frame, textvariable=self.license_status_var,
+                                   relief=tk.SUNKEN, anchor=tk.E, width=30)
+        license_status.pack(side=tk.RIGHT)
 
     def _create_video_tab(self):
         """Create video source settings tab"""
@@ -867,8 +1074,33 @@ class ConfigurationGUI:
             self._load_config_to_ui()
             self.status_var.set("Configuration reset to defaults")
 
+    def _show_license_info(self):
+        """Show detailed license information"""
+        license_info = self.license_manager.get_license_info()
+
+        if not license_info:
+            messagebox.showerror("Error", "Could not load license information")
+            return
+
+        info_text = f"""License Information:
+
+MAC Address: {license_info.get('mac_address', 'Unknown')}
+Username: {license_info.get('username', 'Unknown')}
+Created: {license_info.get('created', 'Unknown')}
+Expires: {license_info.get('expires', 'Unknown')}
+Days Remaining: {license_info.get('days_remaining', 0)}
+Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
+"""
+        messagebox.showinfo("License Information", info_text)
+
     def _run_monitor(self):
         """Run the monitoring system"""
+        # Validate license before running
+        is_valid, message = self.license_manager.validate_license()
+        if not is_valid:
+            messagebox.showerror("License Error", f"Cannot run: {message}")
+            return
+
         try:
             # Collect configuration
             config = self._collect_config_from_ui()
