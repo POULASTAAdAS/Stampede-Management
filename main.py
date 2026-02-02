@@ -3,13 +3,15 @@ Main entry point for the Enhanced Crowd Monitoring System.
 """
 
 import argparse
-import sys
-
 import cv2
+import sys
 
 from config import MonitoringConfig
 from logger_config import get_logger
 from monitor import CrowdMonitor
+
+sys.path.insert(0, 'auth')
+from license_manager import LicenseManager
 
 logger = get_logger(__name__)
 
@@ -109,6 +111,19 @@ def parse_arguments() -> MonitoringConfig:
 def main():
     """Main entry point"""
     try:
+        # Check license before anything else
+        import os
+        license_path = os.path.join('auth', 'license.dat')
+        license_manager = LicenseManager(license_file=license_path)
+        is_valid, message = license_manager.validate_license()
+
+        if not is_valid:
+            logger.error(f"License check failed: {message}")
+            print(f"\nLicense Error: {message}")
+            print("\nTo obtain a license, contact support with your Machine ID:")
+            print(f"  {license_manager.get_machine_id()}")
+            return 1
+
         # Parse configuration
         config = parse_arguments()
 
