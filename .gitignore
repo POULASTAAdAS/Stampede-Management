@@ -60,7 +60,7 @@ model/*.pt
 # Test outputs
 screenshots/
 output/
-temp/
+word_doc/
 
 # System
 *.bak

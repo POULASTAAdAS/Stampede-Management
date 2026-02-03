@@ -1,6 +1,7 @@
 """
 Automated Build Script for Protected Executable
 Run this to build your protected application
+FIXED VERSION - Better PyInstaller detection
 """
 
 import os
@@ -14,26 +15,41 @@ def check_dependencies():
     """Check if required packages are installed"""
     print("Checking dependencies...")
 
-    required = ['pyinstaller', 'tkinter']
-    missing = []
-
-    for package in required:
-        try:
-            if package == 'tkinter':
-                import tkinter
-            else:
-                __import__(package)
-            print(f"  ✓ {package}")
-        except ImportError:
-            print(f"  ✗ {package} - MISSING")
-            missing.append(package)
-
-    if missing:
-        print(f"\nMissing packages: {', '.join(missing)}")
-        print("Install with: pip install " + ' '.join(missing))
+    # Check tkinter
+    try:
+        import tkinter
+        print(f"  ✓ tkinter")
+    except ImportError:
+        print(f"  ✗ tkinter - MISSING")
+        print("\ntkinter is required but not available.")
         return False
 
-    return True
+    # Check pyinstaller using subprocess (works even if not in Python path)
+    try:
+        result = subprocess.run(
+            [sys.executable, '-m', 'PyInstaller', '--version'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            version = result.stdout.strip()
+            print(f"  ✓ pyinstaller (version: {version})")
+            return True
+        else:
+            print(f"  ✗ pyinstaller - MISSING")
+            print(f"\nPyInstaller not found.")
+            print("Install with: pip install pyinstaller")
+            print("\nOr if already installed, try:")
+            print("  python -m pip install --user pyinstaller")
+            return False
+    except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
+        print(f"  ✗ pyinstaller - MISSING ({e})")
+        print(f"\nPyInstaller not found.")
+        print("Install with: pip install pyinstaller")
+        print("\nOr if already installed, try:")
+        print("  python -m pip install --user pyinstaller")
+        return False
 
 
 def verify_secret_salt():
@@ -60,7 +76,6 @@ def clean_build():
     print("\nCleaning previous builds...")
 
     dirs_to_remove = ['build', 'dist', '__pycache__']
-    files_to_remove = ['*.spec'] if os.path.exists('crowd_monitor_protected.spec') else []
 
     for dir_name in dirs_to_remove:
         if os.path.exists(dir_name):
@@ -79,21 +94,23 @@ def build_executable():
 
     if os.path.exists(spec_file):
         print(f"  Using {spec_file}")
-        cmd = ['pyinstaller', spec_file, '--clean']
+        # Use python -m PyInstaller to ensure it's found
+        cmd = [sys.executable, '-m', 'PyInstaller', spec_file, '--clean']
     else:
         print("  Using direct PyInstaller command")
         cmd = [
-            'pyinstaller',
+            sys.executable, '-m', 'PyInstaller',
             '--onefile',
             '--noconsole',
             '--name', 'CrowdMonitor',
             '--clean',
             '--add-data', 'license_manager.py;.',
             '--hidden-import', 'license_manager',
-            'gui.py'
+            '../config_gui.py'  # Assuming we're in auth/ folder
         ]
 
     try:
+        print(f"  Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print("  ✓ Build successful")
         return True
@@ -222,6 +239,12 @@ def main():
 
     # Step 1: Check dependencies
     if not check_dependencies():
+        print("\n✗ Dependency check failed.")
+        print("\nIf PyInstaller is already installed but not detected:")
+        print("  1. Close and reopen your terminal/PowerShell")
+        print("  2. Or run: python -m pip install --user --upgrade pyinstaller")
+        print("  3. Or add Python Scripts to PATH:")
+        print("     C:\\Users\\poula\\AppData\\Roaming\\Python\\Python314\\Scripts")
         sys.exit(1)
 
     # Step 2: Verify secret salt
