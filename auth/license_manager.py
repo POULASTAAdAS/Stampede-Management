@@ -1,6 +1,6 @@
 """
 License Management System with Hardware-Tied Authentication
-FIXED VERSION - Activation dialog with visible buttons
+FIXED VERSION - Supports optional license_file parameter for flexibility
 """
 
 import hashlib
@@ -18,13 +18,27 @@ from tkinter import messagebox, scrolledtext
 class LicenseManager:
     """Handles license generation, validation, and activation UI"""
 
-    def __init__(self):
+    def __init__(self, license_file=None):
+        """
+        Initialize License Manager
+
+        Args:
+            license_file: Optional custom path for license file.
+                         If not provided, uses default location in user home directory.
+        """
         # IMPORTANT: Change this secret salt before distribution!
         # This is used to sign licenses and prevent forgery
         self.secret_salt = b"xK9mP2vQ8nL5rT7wY4uE1jH6fD3sA0zC"
 
         # License file location
-        self.license_file = Path.home() / '.crowdmonitor' / 'license.dat'
+        if license_file:
+            # Use custom path if provided
+            self.license_file = Path(license_file)
+        else:
+            # Use default location
+            self.license_file = Path.home() / '.crowdmonitor' / 'license.dat'
+
+        # Ensure parent directory exists
         self.license_file.parent.mkdir(parents=True, exist_ok=True)
 
     def get_mac_address(self):
@@ -148,9 +162,19 @@ class LicenseManager:
             'valid': license_data.get('valid', False)
         }
 
-    def show_activation_dialog(self):
-        """Show license activation dialog - FIXED VERSION"""
-        root = tk.Tk()
+    def show_activation_dialog(self, parent=None):
+        """
+        Show license activation dialog - FIXED VERSION
+
+        Args:
+            parent: Optional parent window for modal dialog
+        """
+        # Create root or use parent
+        if parent:
+            root = tk.Toplevel(parent)
+        else:
+            root = tk.Tk()
+
         root.title("License Activation Required")
         root.geometry("550x650")
         root.resizable(False, False)
@@ -354,6 +378,7 @@ Machine ID: {info['machine_id']}
                     "Application requires a valid license to run.\n\n"
                     "Do you want to exit?"
             ):
+                activation_result['success'] = False
                 root.quit()
                 root.destroy()
 
@@ -446,8 +471,16 @@ Machine ID: {info['machine_id']}
 
         return activation_result['success']
 
-    def require_activation(self):
-        """Check license and show activation dialog if needed"""
+    def require_activation(self, parent=None):
+        """
+        Check license and show activation dialog if needed
+
+        Args:
+            parent: Optional parent window for modal dialog
+
+        Returns:
+            bool: True if license is valid, False otherwise
+        """
         valid, message = self.validate_license()
 
         if not valid:
@@ -455,7 +488,7 @@ Machine ID: {info['machine_id']}
             print("Opening activation dialog...")
 
             # Show activation dialog
-            success = self.show_activation_dialog()
+            success = self.show_activation_dialog(parent)
 
             if not success:
                 print("Application requires a valid license to run.")

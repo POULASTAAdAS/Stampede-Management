@@ -157,7 +157,7 @@ class ConfigurationGUI:
         # Initialize license manager with correct path
         import os
         license_path = os.path.join('auth', 'license.dat')
-        self.license_manager = LicenseManager()
+        self.license_manager = LicenseManager(license_path)
 
         # Check license before showing UI
         if not self._check_license():
