@@ -162,203 +162,243 @@ class LicenseManager:
             'valid': license_data.get('valid', False)
         }
 
-    def show_activation_dialog(self, parent=None):
-        """
-        Show license activation dialog - FIXED VERSION
 
-        Args:
-            parent: Optional parent window for modal dialog
-        """
-        # Create root or use parent
-        if parent:
-            root = tk.Toplevel(parent)
-        else:
-            root = tk.Tk()
+"""
+Updated show_activation_dialog() method for license_manager.py
+Replace the existing method (around line 120-230) with this version
+"""
 
-        root.title("License Activation Required")
-        root.geometry("550x650")
-        root.resizable(False, False)
 
-        # Configure styling
-        root.configure(bg='#f0f0f0')
+def show_activation_dialog(self, parent=None):
+    """
+    Show license activation dialog with MAC address and username displayed
 
-        # Create main container with padding
-        main_frame = tk.Frame(root, bg='#f0f0f0', padx=20, pady=20)
-        main_frame.pack(fill='both', expand=True)
+    Args:
+        parent: Optional parent window for modal dialog
+    """
+    # Create root or use parent
+    if parent:
+        root = tk.Toplevel(parent)
+    else:
+        root = tk.Tk()
 
-        # Header
-        header_label = tk.Label(
-            main_frame,
-            text="License Activation Required",
-            font=('Arial', 16, 'bold'),
-            bg='#f0f0f0',
-            fg='#333333'
+    root.title("License Activation Required")
+    root.geometry("600x750")
+    root.resizable(False, False)
+
+    # Configure styling
+    root.configure(bg='#f0f0f0')
+
+    # Create main container with padding
+    main_frame = tk.Frame(root, bg='#f0f0f0', padx=20, pady=20)
+    main_frame.pack(fill='both', expand=True)
+
+    # Header
+    header_label = tk.Label(
+        main_frame,
+        text="License Activation Required",
+        font=('Arial', 16, 'bold'),
+        bg='#f0f0f0',
+        fg='#333333'
+    )
+    header_label.pack(pady=(0, 10))
+
+    # Description
+    desc_label = tk.Label(
+        main_frame,
+        text="Please enter your license key to activate the application",
+        font=('Arial', 10),
+        bg='#f0f0f0',
+        fg='#666666'
+    )
+    desc_label.pack(pady=(0, 20))
+
+    # Machine Information Section
+    info_frame = tk.LabelFrame(
+        main_frame,
+        text="Your Machine Information",
+        font=('Arial', 10, 'bold'),
+        bg='#ffffff',
+        fg='#333333',
+        padx=15,
+        pady=15
+    )
+    info_frame.pack(fill='x', pady=(0, 20))
+
+    # Get machine info
+    mac_address = self.get_mac_address()
+    machine_id = self.get_machine_id()
+    username = os.getenv('USERNAME') or os.getenv('USER') or 'unknown'
+
+    # MAC Address
+    mac_label = tk.Label(
+        info_frame,
+        text=f"MAC Address: {mac_address}",
+        font=('Courier', 9),
+        bg='#ffffff',
+        fg='#333333',
+        justify='left'
+    )
+    mac_label.pack(anchor='w', pady=2)
+
+    # Username
+    user_label = tk.Label(
+        info_frame,
+        text=f"Username: {username}",
+        font=('Courier', 9),
+        bg='#ffffff',
+        fg='#333333',
+        justify='left'
+    )
+    user_label.pack(anchor='w', pady=2)
+
+    # Machine ID
+    machine_label = tk.Label(
+        info_frame,
+        text=f"Machine ID: {machine_id}",
+        font=('Courier', 9),
+        bg='#ffffff',
+        fg='#333333',
+        justify='left'
+    )
+    machine_label.pack(anchor='w', pady=2)
+
+    # Info text
+    info_text = tk.Label(
+        info_frame,
+        text="Send ALL THREE values above to support@yourcompany.com to request a license",
+        font=('Arial', 8, 'italic'),
+        bg='#ffffff',
+        fg='#666666',
+        wraplength=500,
+        justify='left'
+    )
+    info_text.pack(anchor='w', pady=(10, 0))
+
+    # License Key Section
+    key_frame = tk.LabelFrame(
+        main_frame,
+        text="License Key:",
+        font=('Arial', 10, 'bold'),
+        bg='#ffffff',
+        fg='#333333',
+        padx=15,
+        pady=15
+    )
+    key_frame.pack(fill='both', expand=True, pady=(0, 20))
+
+    # Text area for license key
+    license_text = scrolledtext.ScrolledText(
+        key_frame,
+        height=10,
+        width=60,
+        font=('Courier', 9),
+        wrap=tk.WORD
+    )
+    license_text.pack(fill='both', expand=True)
+
+    # Button Frame
+    button_frame = tk.Frame(main_frame, bg='#f0f0f0')
+    button_frame.pack(fill='x', pady=(0, 10))
+
+    # Variable to store result
+    activation_result = {'success': False}
+
+    def copy_machine_info():
+        """Copy all machine info to clipboard"""
+        info_text = f"Machine ID: {machine_id}\nMAC Address: {mac_address}\nUsername: {username}"
+        root.clipboard_clear()
+        root.clipboard_append(info_text)
+        messagebox.showinfo(
+            "Copied",
+            "Machine information copied to clipboard!\n\n"
+            "Send this to support@yourcompany.com to request your license."
         )
-        header_label.pack(pady=(0, 10))
 
-        # Description
-        desc_label = tk.Label(
-            main_frame,
-            text="Please enter your license key to activate the application",
-            font=('Arial', 10),
-            bg='#f0f0f0',
-            fg='#666666'
-        )
-        desc_label.pack(pady=(0, 20))
+    def activate_license():
+        """Activate the license"""
+        license_key = license_text.get("1.0", tk.END).strip()
 
-        # Machine Information Section
-        info_frame = tk.LabelFrame(
-            main_frame,
-            text="Machine Information",
-            font=('Arial', 10, 'bold'),
-            bg='#ffffff',
-            fg='#333333',
-            padx=15,
-            pady=15
-        )
-        info_frame.pack(fill='x', pady=(0, 20))
+        if not license_key:
+            messagebox.showerror("Error", "Please enter a license key")
+            return
 
-        # Get machine info
-        mac_address = self.get_mac_address()
-        machine_id = self.get_machine_id()
+        try:
+            # Parse and save license
+            license_data = json.loads(license_key)
 
-        # MAC Address
-        mac_label = tk.Label(
-            info_frame,
-            text=f"MAC Address: {mac_address}",
-            font=('Courier', 9),
-            bg='#ffffff',
-            fg='#333333',
-            justify='left'
-        )
-        mac_label.pack(anchor='w', pady=2)
-
-        # Machine ID
-        machine_label = tk.Label(
-            info_frame,
-            text=f"Machine ID: {machine_id}",
-            font=('Courier', 9),
-            bg='#ffffff',
-            fg='#333333',
-            justify='left'
-        )
-        machine_label.pack(anchor='w', pady=2)
-
-        # Info text
-        info_text = tk.Label(
-            info_frame,
-            text="Send your Machine ID to support@yourcompany.com to request a license",
-            font=('Arial', 8, 'italic'),
-            bg='#ffffff',
-            fg='#666666',
-            wraplength=450,
-            justify='left'
-        )
-        info_text.pack(anchor='w', pady=(10, 0))
-
-        # License Key Section
-        key_frame = tk.LabelFrame(
-            main_frame,
-            text="License Key:",
-            font=('Arial', 10, 'bold'),
-            bg='#ffffff',
-            fg='#333333',
-            padx=15,
-            pady=15
-        )
-        key_frame.pack(fill='both', expand=True, pady=(0, 20))
-
-        # Text area for license key
-        license_text = scrolledtext.ScrolledText(
-            key_frame,
-            height=10,
-            width=50,
-            font=('Courier', 9),
-            wrap=tk.WORD
-        )
-        license_text.pack(fill='both', expand=True)
-
-        # Button Frame
-        button_frame = tk.Frame(main_frame, bg='#f0f0f0')
-        button_frame.pack(fill='x', pady=(0, 10))
-
-        # Variable to store result
-        activation_result = {'success': False}
-
-        def copy_machine_id():
-            """Copy Machine ID to clipboard"""
-            root.clipboard_clear()
-            root.clipboard_append(machine_id)
-            messagebox.showinfo(
-                "Copied",
-                "Machine ID copied to clipboard!\n\n"
-                "Send this to support@yourcompany.com to request your license."
-            )
-
-        def activate_license():
-            """Activate the license"""
-            license_key = license_text.get("1.0", tk.END).strip()
-
-            if not license_key:
-                messagebox.showerror("Error", "Please enter a license key")
-                return
-
-            try:
-                # Parse and save license
-                license_data = json.loads(license_key)
-
-                # Verify it's for this machine
-                if license_data.get('machine_id') != machine_id:
-                    messagebox.showerror(
-                        "Error",
-                        "This license is for a different machine.\n\n"
-                        f"Expected Machine ID: {machine_id}\n"
-                        f"License Machine ID: {license_data.get('machine_id')}"
-                    )
-                    return
-
-                # Save license
-                with open(self.license_file, 'w') as f:
-                    f.write(license_key)
-
-                # Validate
-                valid, message = self.validate_license()
-
-                if valid:
-                    messagebox.showinfo("Success", "License activated successfully!")
-                    activation_result['success'] = True
-                    root.quit()
-                    root.destroy()
-                else:
-                    messagebox.showerror("Error", f"License validation failed: {message}")
-
-            except json.JSONDecodeError:
+            # Verify it's for this machine
+            if license_data.get('machine_id') != machine_id:
                 messagebox.showerror(
                     "Error",
-                    "Invalid license format. Please ensure you copied the entire license key."
-                )
-            except Exception as e:
-                messagebox.showerror("Error", f"Activation failed: {str(e)}")
-
-        def show_license_info():
-            """Show current license information"""
-            license_data = self.load_license()
-
-            if not license_data:
-                messagebox.showinfo(
-                    "License Information",
-                    "No license found.\n\n"
-                    "Please activate with a valid license key."
+                    "This license is for a different machine.\n\n"
+                    f"Expected Machine ID: {machine_id}\n"
+                    f"License Machine ID: {license_data.get('machine_id')}"
                 )
                 return
 
-            info = self.get_license_info()
-            created = datetime.fromisoformat(info['created']).strftime('%Y-%m-%d %H:%M')
-            expires = datetime.fromisoformat(info['expires']).strftime('%Y-%m-%d %H:%M')
+            # Verify MAC address
+            if license_data.get('mac_address', '').upper() != mac_address.upper():
+                messagebox.showerror(
+                    "Error",
+                    "This license is for a different MAC address.\n\n"
+                    f"Your MAC Address: {mac_address}\n"
+                    f"License MAC Address: {license_data.get('mac_address')}"
+                )
+                return
 
+            # Verify username
+            if license_data.get('username') != username:
+                messagebox.showerror(
+                    "Error",
+                    "This license is for a different username.\n\n"
+                    f"Your Username: {username}\n"
+                    f"License Username: {license_data.get('username')}"
+                )
+                return
+
+            # Save license
+            with open(self.license_file, 'w') as f:
+                f.write(license_key)
+
+            # Validate
             valid, message = self.validate_license()
 
-            info_text = f"""
+            if valid:
+                messagebox.showinfo("Success", "License activated successfully!")
+                activation_result['success'] = True
+                root.quit()
+                root.destroy()
+            else:
+                messagebox.showerror("Error", f"License validation failed: {message}")
+
+        except json.JSONDecodeError:
+            messagebox.showerror(
+                "Error",
+                "Invalid license format. Please ensure you copied the entire license key."
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Activation failed: {str(e)}")
+
+    def show_license_info():
+        """Show current license information"""
+        license_data = self.load_license()
+
+        if not license_data:
+            messagebox.showinfo(
+                "License Information",
+                "No license found.\n\n"
+                "Please activate with a valid license key."
+            )
+            return
+
+        info = self.get_license_info()
+        created = datetime.fromisoformat(info['created']).strftime('%Y-%m-%d %H:%M')
+        expires = datetime.fromisoformat(info['expires']).strftime('%Y-%m-%d %H:%M')
+
+        valid, message = self.validate_license()
+
+        info_text = f"""
 Current License Information:
 
 Customer: {info['customer_name']}
@@ -369,107 +409,107 @@ Status: {message}
 Machine ID: {info['machine_id']}
 """
 
-            messagebox.showinfo("License Information", info_text.strip())
+        messagebox.showinfo("License Information", info_text.strip())
 
-        def exit_application():
-            """Exit the application"""
-            if messagebox.askyesno(
-                    "Exit",
-                    "Application requires a valid license to run.\n\n"
-                    "Do you want to exit?"
-            ):
-                activation_result['success'] = False
-                root.quit()
-                root.destroy()
+    def exit_application():
+        """Exit the application"""
+        if messagebox.askyesno(
+                "Exit",
+                "Application requires a valid license to run.\n\n"
+                "Do you want to exit?"
+        ):
+            activation_result['success'] = False
+            root.quit()
+            root.destroy()
 
-        # Create buttons with better styling
-        btn_style = {
-            'font': ('Arial', 10),
-            'relief': 'raised',
-            'bd': 2,
-            'padx': 15,
-            'pady': 8,
-            'cursor': 'hand2'
-        }
+    # Create buttons with better styling
+    btn_style = {
+        'font': ('Arial', 10),
+        'relief': 'raised',
+        'bd': 2,
+        'padx': 15,
+        'pady': 8,
+        'cursor': 'hand2'
+    }
 
-        # Row 1: Copy Machine ID and Activate
-        row1_frame = tk.Frame(button_frame, bg='#f0f0f0')
-        row1_frame.pack(fill='x', pady=5)
+    # Row 1: Copy Info and Activate
+    row1_frame = tk.Frame(button_frame, bg='#f0f0f0')
+    row1_frame.pack(fill='x', pady=5)
 
-        btn_copy = tk.Button(
-            row1_frame,
-            text="📋 Copy Machine ID",
-            command=copy_machine_id,
-            bg='#4CAF50',
-            fg='white',
-            activebackground='#45a049',
-            **btn_style
-        )
-        btn_copy.pack(side='left', expand=True, fill='x', padx=5)
+    btn_copy = tk.Button(
+        row1_frame,
+        text="📋 Copy Machine Info",
+        command=copy_machine_info,
+        bg='#4CAF50',
+        fg='white',
+        activebackground='#45a049',
+        **btn_style
+    )
+    btn_copy.pack(side='left', expand=True, fill='x', padx=5)
 
-        btn_activate = tk.Button(
-            row1_frame,
-            text="✓ Activate License",
-            command=activate_license,
-            bg='#2196F3',
-            fg='white',
-            activebackground='#0b7dda',
-            **btn_style
-        )
-        btn_activate.pack(side='left', expand=True, fill='x', padx=5)
+    btn_activate = tk.Button(
+        row1_frame,
+        text="✓ Activate License",
+        command=activate_license,
+        bg='#2196F3',
+        fg='white',
+        activebackground='#0b7dda',
+        **btn_style
+    )
+    btn_activate.pack(side='left', expand=True, fill='x', padx=5)
 
-        # Row 2: License Info and Exit
-        row2_frame = tk.Frame(button_frame, bg='#f0f0f0')
-        row2_frame.pack(fill='x', pady=5)
+    # Row 2: License Info and Exit
+    row2_frame = tk.Frame(button_frame, bg='#f0f0f0')
+    row2_frame.pack(fill='x', pady=5)
 
-        btn_info = tk.Button(
-            row2_frame,
-            text="ℹ License Info",
-            command=show_license_info,
-            bg='#FF9800',
-            fg='white',
-            activebackground='#e68900',
-            **btn_style
-        )
-        btn_info.pack(side='left', expand=True, fill='x', padx=5)
+    btn_info = tk.Button(
+        row2_frame,
+        text="ℹ License Info",
+        command=show_license_info,
+        bg='#FF9800',
+        fg='white',
+        activebackground='#e68900',
+        **btn_style
+    )
+    btn_info.pack(side='left', expand=True, fill='x', padx=5)
 
-        btn_exit = tk.Button(
-            row2_frame,
-            text="✗ Exit",
-            command=exit_application,
-            bg='#f44336',
-            fg='white',
-            activebackground='#da190b',
-            **btn_style
-        )
-        btn_exit.pack(side='left', expand=True, fill='x', padx=5)
+    btn_exit = tk.Button(
+        row2_frame,
+        text="✗ Exit",
+        command=exit_application,
+        bg='#f44336',
+        fg='white',
+        activebackground='#da190b',
+        **btn_style
+    )
+    btn_exit.pack(side='left', expand=True, fill='x', padx=5)
 
-        # Help text at bottom
-        help_label = tk.Label(
-            main_frame,
-            text="Need help? Contact support@yourcompany.com",
-            font=('Arial', 8),
-            bg='#f0f0f0',
-            fg='#888888'
-        )
-        help_label.pack(pady=(10, 0))
+    # Help text at bottom
+    help_label = tk.Label(
+        main_frame,
+        text="Need help? Contact support@yourcompany.com",
+        font=('Arial', 8),
+        bg='#f0f0f0',
+        fg='#888888'
+    )
+    help_label.pack(pady=(10, 0))
 
-        # Center window on screen
-        root.update_idletasks()
-        width = root.winfo_width()
-        height = root.winfo_height()
-        x = (root.winfo_screenwidth() // 2) - (width // 2)
-        y = (root.winfo_screenheight() // 2) - (height // 2)
-        root.geometry(f'{width}x{height}+{x}+{y}')
+    # Center window on screen
+    root.update_idletasks()
+    width = root.winfo_width()
+    height = root.winfo_height()
+    x = (root.winfo_screenwidth() // 2) - (width // 2)
+    y = (root.winfo_screenheight() // 2) - (height // 2)
+    root.geometry(f'{width}x{height}+{x}+{y}')
 
-        # Make window modal
-        root.grab_set()
-        root.focus_force()
+    # Make window modal
+    root.grab_set()
+    root.focus_force()
 
-        # Start main loop
-        root.mainloop()
+    # Start main loop
+    root.mainloop()
 
-        return activation_result['success']
+    return activation_result['success']
 
     def require_activation(self, parent=None):
         """

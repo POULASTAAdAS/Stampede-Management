@@ -1,9 +1,10 @@
 """
-License Generation Tool (ADMIN ONLY)
+License Generation Tool (ADMIN ONLY) - FIXED VERSION WITH MAC BINDING
 Use this to generate license keys for customers
 """
 
 import hashlib
+import hmac
 import json
 import tkinter as tk
 from datetime import datetime, timedelta
@@ -18,7 +19,7 @@ class LicenseGeneratorGUI:
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.title("License Generator (ADMIN)")
-        self.root.geometry("700x600")
+        self.root.geometry("750x700")
 
         self.manager = LicenseManager()
         self._setup_ui()
@@ -41,22 +42,22 @@ class LicenseGeneratorGUI:
         info_frame = ttk.LabelFrame(self.root, text="Customer Information", padding=15)
         info_frame.pack(fill=tk.BOTH, padx=20, pady=10, expand=True)
 
-        # Machine ID
-        ttk.Label(info_frame, text="Machine ID:").grid(row=0, column=0, sticky=tk.W, pady=5)
+        # Machine ID (REQUIRED)
+        ttk.Label(info_frame, text="Machine ID (Required):").grid(row=0, column=0, sticky=tk.W, pady=5)
         self.machine_id_entry = ttk.Entry(info_frame, width=50)
         self.machine_id_entry.grid(row=0, column=1, sticky=tk.W, pady=5, padx=10)
 
-        # MAC Address (optional, for reference)
-        ttk.Label(info_frame, text="MAC Address:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        # MAC Address (REQUIRED)
+        ttk.Label(info_frame, text="MAC Address (Required):").grid(row=1, column=0, sticky=tk.W, pady=5)
         self.mac_entry = ttk.Entry(info_frame, width=50)
         self.mac_entry.grid(row=1, column=1, sticky=tk.W, pady=5, padx=10)
 
-        # Username (optional, for reference)
-        ttk.Label(info_frame, text="Username:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        # Username (REQUIRED)
+        ttk.Label(info_frame, text="Username (Required):").grid(row=2, column=0, sticky=tk.W, pady=5)
         self.username_entry = ttk.Entry(info_frame, width=50)
         self.username_entry.grid(row=2, column=1, sticky=tk.W, pady=5, padx=10)
 
-        # Customer name
+        # Customer name (optional)
         ttk.Label(info_frame, text="Customer Name:").grid(row=3, column=0, sticky=tk.W, pady=5)
         self.customer_entry = ttk.Entry(info_frame, width=50)
         self.customer_entry.grid(row=3, column=1, sticky=tk.W, pady=5, padx=10)
@@ -67,9 +68,17 @@ class LicenseGeneratorGUI:
         self.days_spinbox.set(365)
         self.days_spinbox.grid(row=4, column=1, sticky=tk.W, pady=5, padx=10)
 
+        # Info label
+        info_label = ttk.Label(info_frame,
+                               text="Customer must provide: Machine ID, MAC Address, and Username\n"
+                                    "from the activation dialog",
+                               font=("", 8, "italic"),
+                               foreground="gray")
+        info_label.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(10, 0))
+
         # Generate button
         ttk.Button(info_frame, text="Generate License",
-                   command=self._generate_license).grid(row=5, column=0, columnspan=2, pady=15)
+                   command=self._generate_license).grid(row=6, column=0, columnspan=2, pady=15)
 
         # Output section
         output_frame = ttk.LabelFrame(self.root, text="Generated License", padding=15)
@@ -78,7 +87,7 @@ class LicenseGeneratorGUI:
         self.output_text = scrolledtext.ScrolledText(output_frame, height=10, wrap=tk.WORD)
         self.output_text.pack(fill=tk.BOTH, expand=True)
 
-        # Copy button
+        # Button frame
         button_frame = ttk.Frame(output_frame)
         button_frame.pack(fill=tk.X, pady=(10, 0))
 
@@ -88,55 +97,87 @@ class LicenseGeneratorGUI:
                    command=lambda: self.output_text.delete(1.0, tk.END)).pack(side=tk.RIGHT, padx=5)
 
     def _generate_license(self):
-        """Generate a license key"""
+        """Generate a license key with customer's MAC/username"""
         machine_id = self.machine_id_entry.get().strip()
+        mac_address = self.mac_entry.get().strip()
+        username = self.username_entry.get().strip()
 
         if not machine_id:
             messagebox.showerror("Error", "Machine ID is required")
             return
 
+        if not mac_address:
+            messagebox.showerror("Error", "MAC Address is required")
+            return
+
+        if not username:
+            messagebox.showerror("Error", "Username is required")
+            return
+
         try:
             days = int(self.days_spinbox.get())
+            customer_name = self.customer_entry.get().strip() or ""
 
-            # Create license data manually
-            expiry_date = datetime.now() + timedelta(days=days)
+            # Create license data with CUSTOMER's information
+            now = datetime.now()
+            expires = now + timedelta(days=days)
 
             license_data = {
                 'machine_id': machine_id,
-                'mac_address': self.mac_entry.get().strip() or "N/A",
-                'username': self.username_entry.get().strip() or "N/A",
-                'customer': self.customer_entry.get().strip() or "N/A",
-                'created': datetime.now().isoformat(),
-                'expires': expiry_date.isoformat(),
+                'mac_address': mac_address.upper(),  # Customer's MAC
+                'username': username,  # Customer's username
+                'customer_name': customer_name,
+                'created': now.isoformat(),
+                'expires': expires.isoformat(),
                 'valid': True
             }
 
-            # Create signature using the same method as LicenseManager
-            data_str = f"{license_data['machine_id']}_{license_data['expires']}_{license_data['valid']}"
-            signature = hashlib.sha256(data_str.encode() + self.manager.secret_salt).hexdigest()
+            # Generate signature using the SAME method as LicenseManager
+            signature = self._generate_signature(license_data)
             license_data['signature'] = signature
 
             # Convert to JSON
-            license_key = json.dumps(license_data, indent=2)
+            license_json = json.dumps(license_data, indent=2)
 
-            # Display
+            # Display the license
             self.output_text.delete(1.0, tk.END)
-            self.output_text.insert(1.0, license_key)
+            self.output_text.insert(1.0, license_json)
 
             # Show summary
             summary = f"""
 License Generated Successfully!
 
-Customer: {license_data['customer']}
-Valid Until: {expiry_date.strftime('%Y-%m-%d')}
+Customer: {customer_name or 'N/A'}
+Machine ID: {machine_id[:32]}...
+MAC Address: {mac_address}
+Username: {username}
+Valid Until: {expires.strftime('%Y-%m-%d')}
 Days: {days}
 
-Copy the license key and send it to the customer.
+IMPORTANT:
+- This license is bound to MAC address: {mac_address}
+- This license is bound to username: {username}
+- Copy the ENTIRE JSON text above and send it to the customer
+- Customer should paste the ENTIRE JSON (including curly braces) into the activation dialog
 """
             messagebox.showinfo("Success", summary)
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to generate license: {e}")
+
+    def _generate_signature(self, data):
+        """Generate HMAC signature - MUST match LicenseManager.generate_signature()"""
+        # Remove signature if present
+        data_copy = {k: v for k, v in data.items() if k != 'signature'}
+
+        # Use same method as LicenseManager
+        data_str = json.dumps(data_copy, sort_keys=True)
+        signature = hmac.new(
+            self.manager.secret_salt,
+            data_str.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        return signature
 
     def _copy_to_clipboard(self):
         """Copy license to clipboard"""
@@ -148,7 +189,8 @@ Copy the license key and send it to the customer.
 
         self.root.clipboard_clear()
         self.root.clipboard_append(license_text)
-        messagebox.showinfo("Success", "License copied to clipboard!")
+        messagebox.showinfo("Success", "License copied to clipboard!\n\n"
+                                       "Send this ENTIRE JSON to the customer.")
 
 
 def main():

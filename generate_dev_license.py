@@ -18,10 +18,15 @@ def main():
     manager = LicenseManager(license_file=license_path)
 
     print(f"MAC Address: {manager.get_mac_address()}")
-    print(f"Machine ID: {manager.get_machine_id()}")
+    machine_id = manager.get_machine_id()
+    print(f"Machine ID: {machine_id}")
 
-    # Generate 365-day license
-    license_key = manager.generate_license_key(days_valid=365)
+    # Generate 365-day license (fixed: use generate_license, not generate_license_key)
+    license_key = manager.generate_license(
+        machine_id=machine_id,
+        validity_days=365,
+        customer_name="Development"
+    )
     print(f"\nLicense generated!")
 
     # Save it

@@ -19,14 +19,17 @@ sys.path.insert(0, 'auth')
 
 
 class LicenseDialog:
-    """Dialog for entering and activating license"""
+    """Dialog for entering and activating license - FIXED VERSION with all 4 buttons"""
 
     def __init__(self, parent):
         self.result = None
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("License Activation Required")
-        self.dialog.geometry("500x300")
+        self.dialog.geometry("550x700")  # Increased height to fit all content
         self.dialog.resizable(False, False)
+
+        # Configure styling
+        self.dialog.configure(bg='#f0f0f0')
 
         # Make dialog modal
         self.dialog.transient(parent)
@@ -34,73 +37,231 @@ class LicenseDialog:
 
         # Center the dialog
         self.dialog.update_idletasks()
-        x = (self.dialog.winfo_screenwidth() // 2) - (500 // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (300 // 2)
-        self.dialog.geometry(f"500x300+{x}+{y}")
+        x = (self.dialog.winfo_screenwidth() // 2) - (550 // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (700 // 2)
+        self.dialog.geometry(f"550x700+{x}+{y}")
 
         self._setup_ui()
 
     def _setup_ui(self):
-        """Setup the license dialog UI"""
-        # Title
-        title_frame = ttk.Frame(self.dialog)
-        title_frame.pack(fill=tk.X, padx=20, pady=20)
+        """Setup the license dialog UI with all 4 buttons visible"""
+        # Create main container with padding
+        main_frame = tk.Frame(self.dialog, bg='#f0f0f0', padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(title_frame,
-                  text="License Activation Required",
-                  font=("", 14, "bold")).pack()
+        # Header
+        header_label = tk.Label(
+            main_frame,
+            text="License Activation Required",
+            font=('Arial', 16, 'bold'),
+            bg='#f0f0f0',
+            fg='#333333'
+        )
+        header_label.pack(pady=(0, 10))
 
-        ttk.Label(title_frame,
-                  text="Please enter your license key to activate the application",
-                  font=("", 9)).pack(pady=(5, 0))
+        # Description
+        desc_label = tk.Label(
+            main_frame,
+            text="Please enter your license key to activate the application",
+            font=('Arial', 10),
+            bg='#f0f0f0',
+            fg='#666666'
+        )
+        desc_label.pack(pady=(0, 20))
 
         # Machine info
-        info_frame = ttk.LabelFrame(self.dialog, text="Machine Information", padding=10)
-        info_frame.pack(fill=tk.X, padx=20, pady=10)
+        info_frame = tk.LabelFrame(
+            main_frame,
+            text="Machine Information",
+            font=('Arial', 10, 'bold'),
+            bg='#ffffff',
+            fg='#333333',
+            padx=15,
+            pady=15
+        )
+        info_frame.pack(fill=tk.X, pady=(0, 20))
 
         import os
         license_path = os.path.join('auth', 'license.dat')
         manager = LicenseManager(license_file=license_path)
 
-        info_text = f"MAC Address: {manager.get_mac_address()}\n"
-        info_text += f"Machine ID: {manager.get_machine_id()[:16]}..."
+        # MAC Address
+        mac_label = tk.Label(
+            info_frame,
+            text=f"MAC Address: {manager.get_mac_address()}",
+            font=('Courier', 9),
+            bg='#ffffff',
+            fg='#333333',
+            justify='left'
+        )
+        mac_label.pack(anchor='w', pady=2)
 
-        ttk.Label(info_frame, text=info_text, font=("Courier", 8)).pack()
+        # Machine ID
+        machine_id = manager.get_machine_id()
+        machine_label = tk.Label(
+            info_frame,
+            text=f"Machine ID: {machine_id}",
+            font=('Courier', 9),
+            bg='#ffffff',
+            fg='#333333',
+            justify='left'
+        )
+        machine_label.pack(anchor='w', pady=2)
+
+        # Info text
+        info_text = tk.Label(
+            info_frame,
+            text="Send your Machine ID to support@yourcompany.com to request a license",
+            font=('Arial', 8, 'italic'),
+            bg='#ffffff',
+            fg='#666666',
+            wraplength=450,
+            justify='left'
+        )
+        info_text.pack(anchor='w', pady=(10, 0))
 
         # License key entry
-        key_frame = ttk.Frame(self.dialog)
-        key_frame.pack(fill=tk.X, padx=20, pady=10)
+        key_frame = tk.LabelFrame(
+            main_frame,
+            text="License Key:",
+            font=('Arial', 10, 'bold'),
+            bg='#ffffff',
+            fg='#333333',
+            padx=15,
+            pady=15
+        )
+        key_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
 
-        ttk.Label(key_frame, text="License Key:").pack(anchor=tk.W)
+        from tkinter import scrolledtext
+        self.license_text = scrolledtext.ScrolledText(
+            key_frame,
+            height=10,
+            width=50,
+            font=('Courier', 9),
+            wrap=tk.WORD
+        )
+        self.license_text.pack(fill=tk.BOTH, expand=True)
 
-        self.license_text = tk.Text(key_frame, height=4, wrap=tk.WORD)
-        self.license_text.pack(fill=tk.X, pady=(5, 0))
+        # Button Frame
+        button_frame = tk.Frame(main_frame, bg='#f0f0f0')
+        button_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # Buttons
-        button_frame = ttk.Frame(self.dialog)
-        button_frame.pack(fill=tk.X, padx=20, pady=20)
+        # Button style
+        btn_style = {
+            'font': ('Arial', 10),
+            'relief': 'raised',
+            'bd': 2,
+            'padx': 15,
+            'pady': 8,
+            'cursor': 'hand2'
+        }
 
-        ttk.Button(button_frame, text="Activate",
-                   command=self._activate).pack(side=tk.RIGHT, padx=5)
-        ttk.Button(button_frame, text="Cancel",
-                   command=self._cancel).pack(side=tk.RIGHT)
-        ttk.Button(button_frame, text="Request License",
-                   command=self._request_license).pack(side=tk.LEFT)
+        # Row 1: Copy Machine ID and Activate License
+        row1_frame = tk.Frame(button_frame, bg='#f0f0f0')
+        row1_frame.pack(fill='x', pady=5)
 
-    def _request_license(self):
-        """Show information for requesting a license"""
+        def copy_machine_id():
+            """Copy Machine ID to clipboard"""
+            self.dialog.clipboard_clear()
+            self.dialog.clipboard_append(machine_id)
+            messagebox.showinfo(
+                "Copied",
+                "Machine ID copied to clipboard!\n\n"
+                "Send this to support@yourcompany.com to request your license."
+            )
+
+        btn_copy = tk.Button(
+            row1_frame,
+            text="📋 Copy Machine ID",
+            command=copy_machine_id,
+            bg='#4CAF50',
+            fg='white',
+            activebackground='#45a049',
+            **btn_style
+        )
+        btn_copy.pack(side='left', expand=True, fill='x', padx=5)
+
+        btn_activate = tk.Button(
+            row1_frame,
+            text="✓ Activate License",
+            command=self._activate,
+            bg='#2196F3',
+            fg='white',
+            activebackground='#0b7dda',
+            **btn_style
+        )
+        btn_activate.pack(side='left', expand=True, fill='x', padx=5)
+
+        # Row 2: License Info and Exit
+        row2_frame = tk.Frame(button_frame, bg='#f0f0f0')
+        row2_frame.pack(fill='x', pady=5)
+
+        btn_info = tk.Button(
+            row2_frame,
+            text="ℹ License Info",
+            command=self._show_license_info,
+            bg='#FF9800',
+            fg='white',
+            activebackground='#e68900',
+            **btn_style
+        )
+        btn_info.pack(side='left', expand=True, fill='x', padx=5)
+
+        btn_exit = tk.Button(
+            row2_frame,
+            text="✗ Exit",
+            command=self._cancel,
+            bg='#f44336',
+            fg='white',
+            activebackground='#da190b',
+            **btn_style
+        )
+        btn_exit.pack(side='left', expand=True, fill='x', padx=5)
+
+        # Help text at bottom
+        help_label = tk.Label(
+            main_frame,
+            text="Need help? Contact support@yourcompany.com",
+            font=('Arial', 8),
+            bg='#f0f0f0',
+            fg='#888888'
+        )
+        help_label.pack(pady=(10, 0))
+
+    def _show_license_info(self):
+        """Show current license information"""
         import os
+        from datetime import datetime
         license_path = os.path.join('auth', 'license.dat')
         manager = LicenseManager(license_file=license_path)
 
-        info = f"""To request a license, please send the following information to support:
+        license_data = manager.load_license()
 
-Machine ID: {manager.get_machine_id()}
-MAC Address: {manager.get_mac_address()}
+        if not license_data:
+            messagebox.showinfo(
+                "License Information",
+                "No license found.\n\n"
+                "Please activate with a valid license key."
+            )
+            return
 
-Email: support@yourcompany.com
+        info = manager.get_license_info()
+        if info:
+            created = datetime.fromisoformat(info['created']).strftime('%Y-%m-%d %H:%M')
+            expires = datetime.fromisoformat(info['expires']).strftime('%Y-%m-%d %H:%M')
+
+            valid, message = manager.validate_license()
+
+            info_text = f"""Current License Information:
+
+Customer: {info.get('customer_name', 'N/A')}
+Created: {created}
+Expires: {expires}
+Status: {message}
+
+Machine ID: {info['machine_id']}
 """
-        messagebox.showinfo("Request License", info)
+            messagebox.showinfo("License Information", info_text.strip())
 
     def _activate(self):
         """Activate the license"""
@@ -130,9 +291,14 @@ Email: support@yourcompany.com
             self.result = False
 
     def _cancel(self):
-        """Cancel activation"""
-        self.result = False
-        self.dialog.destroy()
+        """Cancel activation and exit"""
+        if messagebox.askyesno(
+                "Exit",
+                "Application requires a valid license to run.\n\n"
+                "Do you want to exit?"
+        ):
+            self.result = False
+            self.dialog.destroy()
 
     def show(self):
         """Show the dialog and return result"""

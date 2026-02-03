@@ -4,12 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="61092072-476d-41e9-8b1d-16cfb7dba2ce" name="Changes" comment="FEAT: removed un-necessary logs">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="61092072-476d-41e9-8b1d-16cfb7dba2ce" name="Changes" comment="Update: license manager">
+      <change beforePath="$PROJECT_DIR$/.idea/Stampede-Management.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Stampede-Management.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/build_protected.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth/build_protected.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/CrowdMonitor_Package/README.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/license_generator_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth/license_generator_tool.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/auth/license_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth/license_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/config_gui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generate_dev_license.py" beforeDir="false" afterPath="$PROJECT_DIR$/generate_dev_license.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,9 +80,11 @@
     "Python.crowd_monitor_deepsort_full.executor": "Run",
     "Python.license_manager.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.test_system.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "ShowUsagesActions.previewPropertyKey": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
@@ -96,7 +100,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -105,10 +109,12 @@
       <recent name="D:\Stampede Management" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Stampede-Management\auth" />
+      <recent name="E:\Stampede-Management\admin" />
       <recent name="E:\Stampede-Management\docs\read" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.config_gui">
+  <component name="RunManager" selected="Python.license_generator_tool">
     <configuration name="config_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Stampede-Management" />
       <option name="ENV_FILES" value="" />
@@ -125,6 +131,29 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/config_gui.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="license_generator_tool" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Stampede-Management" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/admin" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="E:\Stampede-Management\auth\license_generator_tool.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -157,11 +186,41 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test_system" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Stampede-Management" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_system.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.license_generator_tool" />
+        <item itemvalue="Python.test_system" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-4762d8aabb82-6d6dccd035ac-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.30387.173" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-WS-253.30387.83" />
       </set>
     </attachedChunks>
   </component>
@@ -184,6 +243,8 @@
       <workItem from="1770045391882" duration="1321000" />
       <workItem from="1770047022101" duration="1544000" />
       <workItem from="1770048630782" duration="1302000" />
+      <workItem from="1770151207994" duration="2045000" />
+      <workItem from="1770153605655" duration="749000" />
     </task>
     <task id="LOCAL-00001" summary="BUG FIX: fixed dependency installation problem">
       <option name="closed" value="true" />
@@ -233,7 +294,23 @@
       <option name="project" value="LOCAL" />
       <updated>1765734979720</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="FIX: fixing license generation for the application">
+      <option name="closed" value="true" />
+      <created>1770149617466</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1770149617466</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Update: license manager">
+      <option name="closed" value="true" />
+      <created>1770150354630</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1770150354630</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -257,7 +334,9 @@
     <MESSAGE value="FEAT: added ui wrapper over consol inout" />
     <MESSAGE value="FEAT: using deepshort for detecting" />
     <MESSAGE value="FEAT: removed un-necessary logs" />
-    <option name="LAST_COMMIT_MESSAGE" value="FEAT: removed un-necessary logs" />
+    <MESSAGE value="FIX: fixing license generation for the application" />
+    <MESSAGE value="Update: license manager" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update: license manager" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="NON_MODAL_COMMIT_POSTPONE_SLOW_CHECKS" value="false" />
@@ -270,8 +349,9 @@
     <SUITE FILE_PATH="coverage/Stampede_Management$CaludCode.coverage" NAME="CaludCode Coverage Results" MODIFIED="1755982930016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$Promising.coverage" NAME="Promising Coverage Results" MODIFIED="1756016919703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$config_gui.coverage" NAME="config_gui Coverage Results" MODIFIED="1770044445937" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$GPTTest.coverage" NAME="GPTTest Coverage Results" MODIFIED="1755986105776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$license_manager.coverage" NAME="license_manager Coverage Results" MODIFIED="1770045138574" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$GPTTest.coverage" NAME="GPTTest Coverage Results" MODIFIED="1755986105776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$test_system.coverage" NAME="test_system Coverage Results" MODIFIED="1770151043113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$Promising_2.coverage" NAME="Promising_2 Coverage Results" MODIFIED="1755987352855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest.coverage" NAME="PromisingTest Coverage Results" MODIFIED="1762462448559" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest_2.coverage" NAME="PromisingTest_2 Coverage Results" MODIFIED="1756017449761" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
