@@ -2,6 +2,8 @@
 Detection module for person detection using YOLO.
 """
 
+import os
+import sys
 from pathlib import Path
 from typing import List
 
@@ -12,6 +14,45 @@ from config import MonitoringConfig
 from logger_config import get_logger
 
 logger = get_logger(__name__)
+
+
+def get_resource_path(relative_path: str) -> str:
+    """
+    Get absolute path to resource, works for dev and for PyInstaller.
+    
+    When running in development, resources are in the normal file structure.
+    When running as a PyInstaller bundle, resources may be in _MEIPASS or
+    relative to the executable.
+    
+    Args:
+        relative_path: Relative path to resource
+        
+    Returns:
+        Absolute path to resource
+    """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        # This attribute only exists when running from a PyInstaller bundle
+        base_path = sys._MEIPASS  # type: ignore[attr-defined]
+    except AttributeError:
+        # Not running from PyInstaller bundle, use current directory
+        base_path = os.path.abspath(".")
+
+    # First, try the path relative to base_path
+    resource_path = os.path.join(base_path, relative_path)
+    if os.path.exists(resource_path):
+        return resource_path
+
+    # If not found, try relative to executable (for distribution packages)
+    if getattr(sys, 'frozen', False):
+        # Running as executable
+        exe_dir = os.path.dirname(sys.executable)
+        resource_path = os.path.join(exe_dir, relative_path)
+        if os.path.exists(resource_path):
+            return resource_path
+
+    # Return the original relative path and let the caller handle it
+    return relative_path
 
 
 def download_yolo_model(model_name: str) -> bool:
@@ -72,7 +113,12 @@ class PersonDetector:
         Returns:
             True if successful, False otherwise
         """
-        logger.info(f"Loading YOLO model: {self.config.model_path}")
+        # Resolve model path for bundled executables
+        resolved_model_path = get_resource_path(self.config.model_path)
+        logger.info(f"Loading YOLO model: {resolved_model_path}")
+
+        # Update config with resolved path
+        self.config.model_path = resolved_model_path
 
         # Ensure model is available
         if not download_yolo_model(self.config.model_path):

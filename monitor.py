@@ -63,6 +63,9 @@ class CrowdMonitor:
         self.original_cell_width = config.cell_width
         self.original_cell_height = config.cell_height
 
+        # Stop flag function (can be set externally by GUI)
+        self.should_stop = lambda: False
+
     def initialize(self) -> bool:
         """
         Initialize all components of the monitoring system.
@@ -128,48 +131,93 @@ class CrowdMonitor:
             logger.error(f"Initialization failed: {e}")
             return False
 
+    @staticmethod
+    def detect_available_cameras(max_cameras: int = 10, timeout: float = 1.0) -> List[dict]:
+        """
+        Detect all available camera sources.
+        
+        Args:
+            max_cameras: Maximum number of camera indices to check
+            timeout: Timeout in seconds for each camera check
+            
+        Returns:
+            List of dictionaries with camera info: [{'index': int, 'name': str, 'width': int, 'height': int}, ...]
+        """
+        available_cameras = []
+        logger.info(f"Detecting available camera sources (checking 0-{max_cameras - 1})...")
+
+        for index in range(max_cameras):
+            try:
+                cap = cv2.VideoCapture(index)
+                if cap.isOpened():
+                    # Try to read a frame to verify camera is actually working
+                    ret, frame = cap.read()
+                    if ret:
+                        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+                        camera_info = {
+                            'index': index,
+                            'name': f"Camera {index} ({width}x{height})",
+                            'width': width,
+                            'height': height
+                        }
+                        available_cameras.append(camera_info)
+                        logger.info(f"  Found: {camera_info['name']}")
+                    cap.release()
+            except Exception as e:
+                logger.debug(f"Error checking camera {index}: {e}")
+                continue
+
+        if not available_cameras:
+            logger.warning("No camera sources detected")
+        else:
+            logger.info(f"Total cameras found: {len(available_cameras)}")
+
+        return available_cameras
+
     def _initialize_video_capture(self) -> Optional[cv2.VideoCapture]:
         """
-        Initialize video capture with fallback support.
+        Initialize video capture with the configured source.
         
         Returns:
             Video capture object or None
         """
         try:
             source = self.config.source
-            if isinstance(source, str) and source.isdigit():
-                source = int(source)
 
-            logger.info(f"Trying primary camera source: {source}")
+            # Handle string inputs (convert numeric strings to int, keep file paths as string)
+            if isinstance(source, str):
+                if source.isdigit():
+                    source = int(source)
+                # Otherwise it's a file path, keep as string
+
+            logger.info(f"Initializing video source: {source}")
             cap = cv2.VideoCapture(source)
 
             if cap.isOpened():
-                cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
-                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
-                cap.set(cv2.CAP_PROP_FPS, self.config.camera_fps)
-                logger.info(f"Connected to camera source: {source}")
-                return cap
+                # For camera sources, set properties
+                if isinstance(source, int):
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
+                    cap.set(cv2.CAP_PROP_FPS, self.config.camera_fps)
 
-            cap.release()
-
-            # Try fallback sources
-            if isinstance(source, int):
-                fallback_sources = [i for i in range(3) if i != source]
-                for fallback_source in fallback_sources:
-                    logger.info(f"Trying fallback camera source: {fallback_source}")
-                    cap = cv2.VideoCapture(fallback_source)
-
-                    if cap.isOpened():
-                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.config.camera_width)
-                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.config.camera_height)
-                        cap.set(cv2.CAP_PROP_FPS, self.config.camera_fps)
-                        logger.info(f"Connected to fallback camera: {fallback_source}")
-                        return cap
-
+                # Verify we can read a frame
+                ret, _ = cap.read()
+                if ret:
+                    # Reset to beginning for video files
+                    if isinstance(source, str) and not source.isdigit():
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    logger.info(f"Successfully connected to video source: {source}")
+                    return cap
+                else:
+                    logger.error(f"Cannot read from video source: {source}")
                     cap.release()
-
-            logger.error("No camera sources available")
-            return None
+                    return None
+            else:
+                logger.error(f"Cannot open video source: {source}")
+                cap.release()
+                return None
 
         except Exception as e:
             logger.error(f"Failed to initialize video capture: {e}")
@@ -235,6 +283,11 @@ class CrowdMonitor:
 
         try:
             while True:
+                # Check if stop was requested (from GUI)
+                if self.should_stop():
+                    logger.info("Stop requested by GUI")
+                    break
+                
                 ret, frame = cap.read()
                 if not ret:
                     logger.warning("Failed to read frame, ending processing")

@@ -5,7 +5,6 @@ With MAC-based license protection.
 """
 
 import json
-import subprocess
 import sys
 import threading
 import tkinter as tk
@@ -45,17 +44,29 @@ class ConfigurationGUI:
         # Configuration storage
         self.config = MonitoringConfig()
         self.config_widgets: Dict[str, tk.Widget] = {}
-        self.process: Optional[subprocess.Popen] = None
-        self.output_thread: Optional[threading.Thread] = None
+        self.current_monitor = None  # Reference to running monitor
+        self.monitor_thread: Optional[threading.Thread] = None
+        self.stop_requested = False  # Flag to signal monitor to stop
+
+        # Camera detection state
+        self.available_cameras: list = []
+        self.cameras_detected: bool = False
+        self.detecting_cameras: bool = False
 
         # Setup UI
         self._setup_ui()
+
+        # Try to load system_conf.json if it exists
+        self._load_system_config()
 
         # Load default values
         self._load_config_to_ui()
 
         # Start periodic license check
         self._schedule_license_check()
+
+        # Start camera detection automatically
+        self.root.after(100, self._detect_cameras_async)
 
     def _check_license(self) -> bool:
         """
@@ -93,6 +104,32 @@ class ConfigurationGUI:
                 return False
 
             return True
+
+    def _load_system_config(self):
+        """Load system configuration from system_conf.json if it exists"""
+        try:
+            # Try to find system_conf.json using resource path resolution
+            import os
+            from detector import get_resource_path
+
+            config_path = get_resource_path('system_conf.json')
+
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config_dict = json.load(f)
+
+                # Update config object with loaded values
+                for key, value in config_dict.items():
+                    if hasattr(self.config, key):
+                        setattr(self.config, key, value)
+
+                self.status_var.set(f"Loaded configuration from system_conf.json")
+                print(f"✓ Loaded system configuration from: {config_path}")
+            else:
+                print("ℹ system_conf.json not found, using default configuration")
+        except Exception as e:
+            print(f"⚠ Warning: Could not load system_conf.json: {e}")
+            # Continue with defaults - this is not a critical error
 
     def _schedule_license_check(self):
         """Schedule periodic license validation"""
@@ -141,9 +178,10 @@ class ConfigurationGUI:
         # Spacer
         ttk.Frame(button_frame).pack(side=tk.LEFT, expand=True)
 
-        # Run button (prominent)
+        # Run button (prominent) - Initially disabled until cameras detected
         self.run_button = ttk.Button(button_frame, text="▶ Run Monitor",
-                                     command=self._run_monitor, style="Accent.TButton")
+                                     command=self._run_monitor, style="Accent.TButton",
+                                     state=tk.DISABLED)
         self.run_button.pack(side=tk.RIGHT, padx=5)
 
         self.stop_button = ttk.Button(button_frame, text="⏹ Stop Monitor",
@@ -200,11 +238,22 @@ class ConfigurationGUI:
         ttk.Label(scrollable_frame, text="Video Source:").grid(row=row, column=0, sticky=tk.W, padx=10, pady=5)
         source_frame = ttk.Frame(scrollable_frame)
         source_frame.grid(row=row, column=1, sticky=tk.W, pady=5)
-        self.config_widgets['source'] = ttk.Entry(source_frame, width=30)
+
+        # Camera dropdown
+        self.config_widgets['source'] = ttk.Combobox(source_frame, width=35, state='readonly')
         self.config_widgets['source'].pack(side=tk.LEFT, padx=5)
-        ttk.Button(source_frame, text="Browse", command=self._browse_video_source).pack(side=tk.LEFT)
-        ttk.Label(scrollable_frame, text="Camera index (0, 1, 2) or video file path").grid(row=row, column=2,
-                                                                                           sticky=tk.W, padx=10)
+        self.config_widgets['source'].bind('<<ComboboxSelected>>', self._on_camera_selected)
+
+        # Detect cameras button
+        self.detect_button = ttk.Button(source_frame, text="Detect Cameras", command=self._detect_cameras_async)
+        self.detect_button.pack(side=tk.LEFT, padx=2)
+
+        # Browse for video file button
+        ttk.Button(source_frame, text="Browse File", command=self._browse_video_source).pack(side=tk.LEFT, padx=2)
+
+        # Status label
+        self.camera_status_label = ttk.Label(scrollable_frame, text="Detecting cameras...", foreground="blue")
+        self.camera_status_label.grid(row=row, column=2, sticky=tk.W, padx=10)
 
         row += 1
         ttk.Label(scrollable_frame, text="Model Path:").grid(row=row, column=0, sticky=tk.W, padx=10, pady=5)
@@ -671,6 +720,93 @@ class ConfigurationGUI:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
+    def _detect_cameras_async(self):
+        """Start camera detection in a background thread"""
+        if self.detecting_cameras:
+            return
+
+        self.detecting_cameras = True
+        self.cameras_detected = False
+
+        # Update UI
+        self.camera_status_label.config(text="Detecting cameras...", foreground="blue")
+        self.detect_button.config(state=tk.DISABLED)
+        self.run_button.config(state=tk.DISABLED)
+        self.config_widgets['source'].config(state='disabled')
+
+        # Start detection in background thread
+        detection_thread = threading.Thread(target=self._detect_cameras_thread, daemon=True)
+        detection_thread.start()
+
+    def _detect_cameras_thread(self):
+        """Background thread for camera detection"""
+        try:
+            # Import CrowdMonitor to use its static method
+            from monitor import CrowdMonitor
+
+            self.available_cameras = CrowdMonitor.detect_available_cameras(max_cameras=10)
+
+            # Update UI on main thread
+            self.root.after(0, self._on_cameras_detected)
+
+        except Exception as e:
+            self.root.after(0, lambda: self._on_camera_detection_error(str(e)))
+
+    def _on_cameras_detected(self):
+        """Called when camera detection completes successfully"""
+        self.detecting_cameras = False
+        self.cameras_detected = True
+
+        # Update camera dropdown
+        camera_options = []
+        for cam in self.available_cameras:
+            camera_options.append(f"{cam['index']} - {cam['name']}")
+
+        # Add option for video file
+        camera_options.append("Video File (Browse)")
+
+        self.config_widgets['source'].config(values=camera_options, state='readonly')
+
+        # Select first camera by default if available
+        if self.available_cameras:
+            self.config_widgets['source'].current(0)
+            self.camera_status_label.config(
+                text=f"✓ {len(self.available_cameras)} camera(s) detected",
+                foreground="green"
+            )
+            self.run_button.config(state=tk.NORMAL)
+        else:
+            self.camera_status_label.config(
+                text="⚠ No cameras found. Use 'Browse File' for video.",
+                foreground="orange"
+            )
+
+        self.detect_button.config(state=tk.NORMAL)
+
+    def _on_camera_detection_error(self, error_msg: str):
+        """Called when camera detection fails"""
+        self.detecting_cameras = False
+        self.cameras_detected = False
+
+        self.camera_status_label.config(
+            text=f"✗ Detection failed: {error_msg}",
+            foreground="red"
+        )
+        self.detect_button.config(state=tk.NORMAL)
+        self.config_widgets['source'].config(state='readonly')
+
+        messagebox.showerror("Camera Detection Error", f"Failed to detect cameras:\n{error_msg}")
+
+    def _on_camera_selected(self, event):
+        """Called when user selects a camera from dropdown"""
+        selection = self.config_widgets['source'].get()
+
+        if selection == "Video File (Browse)":
+            self._browse_video_source()
+        elif selection:
+            # Enable run button if a camera is selected
+            self.run_button.config(state=tk.NORMAL)
+
     def _browse_video_source(self):
         """Browse for video source file"""
         filename = filedialog.askopenfilename(
@@ -678,8 +814,20 @@ class ConfigurationGUI:
             filetypes=[("Video files", "*.mp4 *.avi *.mov *.mkv"), ("All files", "*.*")]
         )
         if filename:
-            self.config_widgets['source'].delete(0, tk.END)
-            self.config_widgets['source'].insert(0, filename)
+            # Add the file to dropdown and select it
+            current_values = list(self.config_widgets['source']['values'])
+            file_option = f"File: {filename}"
+
+            # Remove any previous file selections
+            current_values = [v for v in current_values if not v.startswith("File:")]
+            current_values.append(file_option)
+
+            self.config_widgets['source'].config(values=current_values, state='readonly')
+            self.config_widgets['source'].set(file_option)
+
+            self.camera_status_label.config(text="✓ Video file selected", foreground="green")
+            self.run_button.config(state=tk.NORMAL)
+            self.cameras_detected = True
 
     def _browse_model_path(self):
         """Browse for model file"""
@@ -693,8 +841,8 @@ class ConfigurationGUI:
 
     def _load_config_to_ui(self):
         """Load configuration values into UI widgets"""
-        # Video source
-        self._set_widget_value('source', self.config.source)
+        # Video source - will be set after camera detection completes
+        # Don't set source here since it needs to match dropdown values
         self._set_widget_value('model_path', self.config.model_path)
         self._set_widget_value('camera_width', self.config.camera_width)
         self._set_widget_value('camera_height', self.config.camera_height)
@@ -757,7 +905,10 @@ class ConfigurationGUI:
 
         if isinstance(widget, tk.BooleanVar):
             widget.set(value)
-        elif isinstance(widget, (ttk.Entry, ttk.Spinbox, ttk.Combobox)):
+        elif isinstance(widget, ttk.Combobox):
+            # For combobox, try to set value directly
+            widget.set(str(value))
+        elif isinstance(widget, (ttk.Entry, ttk.Spinbox)):
             widget.delete(0, tk.END)
             widget.insert(0, str(value))
         elif isinstance(widget, ttk.Scale):
@@ -777,6 +928,8 @@ class ConfigurationGUI:
         elif isinstance(widget, ttk.Scale):
             return widget.get()
 
+        return None
+
     def _collect_config_from_ui(self) -> MonitoringConfig:
         """Collect configuration from UI widgets"""
 
@@ -793,7 +946,17 @@ class ConfigurationGUI:
             except:
                 return 0.0
 
-        source = self._get_widget_value('source')
+        # Parse video source from dropdown selection
+        source_selection = self._get_widget_value('source')
+        if source_selection.startswith("File:"):
+            # Extract file path
+            source = source_selection.replace("File:", "").strip()
+        elif " - " in source_selection:
+            # Extract camera index (format: "0 - Camera 0 (1280x720)")
+            source = int(source_selection.split(" - ")[0])
+        else:
+            # Fallback to raw value
+            source = source_selection
 
         config = MonitoringConfig(
             # Video
@@ -937,8 +1100,33 @@ class ConfigurationGUI:
                 if hasattr(self.config, key):
                     setattr(self.config, key, value)
 
-            # Update UI
+            # Update UI (except source which needs special handling)
             self._load_config_to_ui()
+
+            # Handle source separately
+            if 'source' in config_dict:
+                loaded_source = config_dict['source']
+                # Check if it matches any detected camera
+                source_found = False
+                if isinstance(loaded_source, int) and self.available_cameras:
+                    for i, cam in enumerate(self.available_cameras):
+                        if cam['index'] == loaded_source:
+                            self.config_widgets['source'].current(i)
+                            source_found = True
+                            break
+
+                if not source_found:
+                    # It's a file path or undetected camera
+                    if isinstance(loaded_source, str) and not loaded_source.isdigit():
+                        # File path
+                        current_values = list(self.config_widgets['source']['values'])
+                        file_option = f"File: {loaded_source}"
+                        current_values = [v for v in current_values if not v.startswith("File:")]
+                        current_values.append(file_option)
+                        self.config_widgets['source'].config(values=current_values)
+                        self.config_widgets['source'].set(file_option)
+                        self.cameras_detected = True
+                        self.run_button.config(state=tk.NORMAL)
 
             self.status_var.set(f"Configuration loaded from {filename}")
             messagebox.showinfo("Success", f"Configuration loaded successfully from:\n{filename}")
@@ -974,6 +1162,14 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
 
     def _run_monitor(self):
         """Run the monitoring system"""
+        # Check if cameras are detected or video file selected
+        if not self.cameras_detected:
+            messagebox.showwarning(
+                "No Video Source",
+                "Please wait for camera detection to complete or select a video file."
+            )
+            return
+
         # Validate license before running
         is_valid, message = self.license_manager.validate_license()
         if not is_valid:
@@ -984,95 +1180,84 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
             # Collect configuration
             config = self._collect_config_from_ui()
 
-            # Build command line arguments
-            args = [
-                sys.executable, "main.py",
-                "--source", str(config.source),
-                "--model", config.model_path,
-                "--cell-width", str(config.cell_width),
-                "--cell-height", str(config.cell_height),
-                "--person-radius", str(config.person_radius),
-                "--detect-every", str(config.detect_every),
-                "--conf", str(config.confidence_threshold),
-                "--min-bbox-area", str(config.min_bbox_area),
-                "--max-age", str(config.max_age),
-                "--n-init", str(config.n_init),
-                "--ema-alpha", str(config.ema_alpha),
-                "--fps", str(config.fps),
-                "--hysteresis", str(config.hysteresis_time)
-            ]
-
-            if config.use_deepsort:
-                args.append("--use-deepsort")
-            if not config.enable_screenshots:
-                args.append("--disable-screenshots")
-            if not config.enable_grid_adjustment:
-                args.append("--disable-grid-adjustment")
-
-            # Add calibration parameters
-            args.extend([
-                "--calibration-width", str(config.calibration_area_width),
-                "--calibration-height", str(config.calibration_area_height)
-            ])
-            if config.auto_calibration:
-                args.append("--auto-calibration")
-
-            # Start process
-            self.process = subprocess.Popen(
-                args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1
-            )
+            # Reset stop flag
+            self.stop_requested = False
 
             # Update UI
             self.run_button.config(state=tk.DISABLED)
             self.stop_button.config(state=tk.NORMAL)
             self.status_var.set("Monitoring system running...")
 
-            # Start output monitoring thread
-            self.output_thread = threading.Thread(target=self._monitor_process_output, daemon=True)
-            self.output_thread.start()
+            # Run monitor in a separate thread to keep GUI responsive
+            self.monitor_thread = threading.Thread(target=self._run_monitor_thread, args=(config,), daemon=True)
+            self.monitor_thread.start()
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to start monitoring system:\n{str(e)}")
+            self.run_button.config(state=tk.NORMAL)
+            self.stop_button.config(state=tk.DISABLED)
 
-    def _monitor_process_output(self):
-        """Monitor process output in background thread"""
+    def _run_monitor_thread(self, config: MonitoringConfig):
+        """Run monitor in a separate thread"""
         try:
-            if self.process:
-                for line in self.process.stdout:
-                    print(line, end='')
+            # Import monitor here to avoid circular imports
+            from monitor import CrowdMonitor
+            from logger_config import get_logger
 
-                self.process.wait()
+            logger = get_logger(__name__)
+            logger.info("Starting monitoring system from GUI...")
 
-                # Update UI when process ends
-                self.root.after(0, self._on_process_ended)
+            # Create and initialize monitor
+            monitor = CrowdMonitor(config)
+            self.current_monitor = monitor  # Store reference for stopping
 
+            # Pass the stop flag function to the monitor
+            monitor.should_stop = lambda: self.stop_requested
+
+            # Run the monitor (this will block until quit or error)
+            success = monitor.initialize()
+
+            if not success and not self.stop_requested:
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Monitor Error",
+                    "Failed to initialize monitoring system. Check the log for details."
+                ))
+            
         except Exception as e:
-            print(f"Error monitoring process: {e}")
+            if not self.stop_requested:
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Monitor Error",
+                    f"Error running monitor:\n{str(e)}"
+                ))
+        finally:
+            # Update UI when monitor ends
+            self.root.after(0, self._on_monitor_ended)
 
-    def _on_process_ended(self):
-        """Called when monitoring process ends"""
+    def _on_monitor_ended(self):
+        """Called when monitoring ends"""
         self.run_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
         self.status_var.set("Monitoring system stopped")
-        self.process = None
+        self.current_monitor = None
 
     def _stop_monitor(self):
         """Stop the monitoring system"""
-        if self.process:
-            try:
-                self.process.terminate()
-                self.process.wait(timeout=5)
-            except:
-                self.process.kill()
+        try:
+            # Set the stop flag - the monitor thread will check this and exit gracefully
+            self.stop_requested = True
 
-            self.process = None
+            self.status_var.set("Stopping monitoring system...")
+            self.stop_button.config(state=tk.DISABLED)
+
+            # Monitor thread will detect the flag and exit
+            # UI will be updated by _on_monitor_ended
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error stopping monitor:\n{str(e)}")
+            # Force UI update
             self.run_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
-            self.status_var.set("Monitoring system stopped")
+            self.status_var.set("Monitor stopped")
 
     def run(self):
         """Run the GUI application"""
