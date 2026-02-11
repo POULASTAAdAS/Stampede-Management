@@ -3,15 +3,16 @@ Main entry point for the Enhanced Crowd Monitoring System.
 """
 
 import argparse
-import cv2
 import sys
 
+import cv2
+
+from auth.license_manager import LicenseManager
 from config import MonitoringConfig
 from logger_config import get_logger
 from monitor import CrowdMonitor
 
 sys.path.insert(0, 'auth')
-from license_manager import LicenseManager
 
 logger = get_logger(__name__)
 
@@ -80,6 +81,12 @@ def parse_arguments() -> MonitoringConfig:
     parser.add_argument("--auto-calibration", action="store_true",
                         help="Use preset calibration dimensions (skip manual input)")
 
+    # Display settings (automatically adjusted based on screen size)
+    parser.add_argument("--max-display-width", type=int, default=1600,
+                        help="Maximum display window width in pixels (auto-adjusted to fit screen)")
+    parser.add_argument("--max-display-height", type=int, default=900,
+                        help="Maximum display window height in pixels (auto-adjusted to fit screen)")
+
     args = parser.parse_args()
 
     # Create configuration object
@@ -102,7 +109,9 @@ def parse_arguments() -> MonitoringConfig:
         enable_grid_adjustment=not args.disable_grid_adjustment,
         calibration_area_width=args.calibration_width,
         calibration_area_height=args.calibration_height,
-        auto_calibration=args.auto_calibration
+        auto_calibration=args.auto_calibration,
+        max_display_width=args.max_display_width,
+        max_display_height=args.max_display_height
     )
 
     return config

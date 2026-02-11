@@ -1,0 +1,25 @@
+═══════════════════════════════════════════════════════════════
+  STAMPEDE MANAGEMENT - QUICK ACTIVATION COMMAND
+═══════════════════════════════════════════════════════════════
+
+📌 To activate the virtual environment in PowerShell, copy and paste:
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force; .\.venv\Scripts\Activate.ps1
+
+───────────────────────────────────────────────────────────────
+
+Then run the application:
+  python main.py
+
+Or run the configuration GUI:
+  python config_gui.py
+
+───────────────────────────────────────────────────────────────
+
+✓ Virtual environment is ready with all dependencies installed!
+✓ Python 3.12.1
+✓ All packages installed successfully
+
+For more details, see: VENV_SETUP.md
+
+═══════════════════════════════════════════════════════════════

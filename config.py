@@ -56,6 +56,12 @@ class MonitoringConfig:
     grid_line_thickness: int = 2
     bbox_thickness: int = 3
 
+    # Display window size limits (prevents window from going off-screen)
+    # These values are automatically adjusted based on detected screen size
+    # Set to high values by default; will be reduced to fit your screen
+    max_display_width: int = 1600  # Maximum display width in pixels (auto-adjusted)
+    max_display_height: int = 900  # Maximum display height in pixels (auto-adjusted)
+
     # Color scheme (BGR format for OpenCV)
     grid_color: Tuple[int, int, int] = (100, 255, 100)
     bbox_color: Tuple[int, int, int] = (0, 255, 0)

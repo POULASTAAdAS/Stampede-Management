@@ -4,7 +4,7 @@ Orchestrates all components for real-time monitoring.
 """
 
 import time
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -20,6 +20,42 @@ from visualizer import MonitorVisualizer
 logger = get_logger(__name__)
 
 
+def get_screen_size() -> Tuple[int, int]:
+    """
+    Get the screen size for the primary monitor.
+    
+    Returns:
+        Tuple of (width, height) in pixels. Returns (1920, 1080) if detection fails.
+    """
+    try:
+        # Try using tkinter (cross-platform, part of standard library)
+        import tkinter as tk
+        root = tk.Tk()
+        root.withdraw()  # Hide the window
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        root.destroy()
+        logger.info(f"Detected screen size: {screen_width}x{screen_height}")
+        return screen_width, screen_height
+    except Exception as e:
+        logger.warning(f"Could not detect screen size using tkinter: {e}")
+
+    try:
+        # Fallback: Try Windows-specific method using ctypes
+        import ctypes
+        user32 = ctypes.windll.user32
+        screen_width = user32.GetSystemMetrics(0)
+        screen_height = user32.GetSystemMetrics(1)
+        logger.info(f"Detected screen size (Windows API): {screen_width}x{screen_height}")
+        return screen_width, screen_height
+    except Exception as e:
+        logger.warning(f"Could not detect screen size using Windows API: {e}")
+
+    # Final fallback
+    logger.warning("Using default screen size: 1920x1080")
+    return 1920, 1080
+
+
 class CrowdMonitor:
     """Enhanced crowd monitoring system with interactive features"""
 
@@ -31,6 +67,9 @@ class CrowdMonitor:
             config: Monitoring configuration
         """
         self.config = config
+
+        # Auto-adjust display size based on screen resolution
+        self._adjust_display_size_for_screen()
 
         # Components
         self.detector: Optional[PersonDetector] = None
@@ -65,6 +104,33 @@ class CrowdMonitor:
 
         # Stop flag function (can be set externally by GUI)
         self.should_stop = lambda: False
+
+    def _adjust_display_size_for_screen(self):
+        """
+        Automatically adjust max display size based on detected screen resolution.
+        Leaves appropriate margin for taskbar and window decorations.
+        """
+        screen_width, screen_height = get_screen_size()
+
+        # Calculate safe display area (leaving margin for taskbar, window borders, etc.)
+        # Use 85% of screen width and 75% of screen height (accounting for taskbar)
+        safe_width = int(screen_width * 0.85)
+        safe_height = int(screen_height * 0.75)
+
+        # Only adjust if current config values exceed safe limits
+        # This allows user-specified values to take precedence if they're reasonable
+        if self.config.max_display_width > safe_width:
+            logger.info(f"Adjusting max display width: {self.config.max_display_width} → {safe_width} "
+                        f"(screen width: {screen_width})")
+            self.config.max_display_width = safe_width
+
+        if self.config.max_display_height > safe_height:
+            logger.info(f"Adjusting max display height: {self.config.max_display_height} → {safe_height} "
+                        f"(screen height: {screen_height})")
+            self.config.max_display_height = safe_height
+
+        logger.info(f"Display size limits: {self.config.max_display_width}x{self.config.max_display_height} "
+                    f"(screen: {screen_width}x{screen_height})")
 
     def initialize(self) -> bool:
         """
@@ -313,8 +379,12 @@ class CrowdMonitor:
                 # Generate visualization
                 display_frame = self._create_visualization(frame, tracks, show_fps)
 
+                # Resize display frame if it's too large for the screen
+                display_frame = self._resize_for_display(display_frame)
+
                 # Display the frame
                 window_title = f"Enhanced Crowd Monitor - {self.display_modes[self.current_mode]}"
+                cv2.namedWindow(window_title, cv2.WINDOW_NORMAL)  # Make window resizable
                 cv2.imshow(window_title, display_frame)
 
                 # Handle user input
@@ -454,6 +524,39 @@ class CrowdMonitor:
         split_frame = np.vstack([top_row, bottom_row])
 
         return split_frame
+
+    def _resize_for_display(self, frame: np.ndarray) -> np.ndarray:
+        """
+        Resize frame to fit within screen bounds while maintaining aspect ratio.
+        
+        Args:
+            frame: Input frame
+            
+        Returns:
+            Resized frame
+        """
+        height, width = frame.shape[:2]
+        max_width = self.config.max_display_width
+        max_height = self.config.max_display_height
+
+        # Check if resizing is needed
+        if height <= max_height and width <= max_width:
+            return frame
+
+        # Calculate scaling factor to fit within bounds
+        scale_height = max_height / height
+        scale_width = max_width / width
+        scale = min(scale_height, scale_width)
+
+        # Calculate new dimensions
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+
+        # Resize frame
+        resized = cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
+        logger.debug(f"Resized display from {width}x{height} to {new_width}x{new_height}")
+
+        return resized
 
     def _handle_mode_switch(self, new_mode: str):
         """Handle display mode switch"""
