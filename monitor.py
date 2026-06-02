@@ -17,6 +17,7 @@ from occupancy import OccupancyGrid
 from trackers import DeepSortTracker, SimpleCentroidTracker
 from visualizer import MonitorVisualizer
 from websocket_sender import WebSocketSender, build_payload
+from window_utils import create_visible_window, set_window_title, wait_key
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,44 @@ def get_screen_size() -> Tuple[int, int]:
     Returns:
         Tuple of (width, height) in pixels. Returns (1920, 1080) if detection fails.
     """
+    import platform
+
+    if platform.system() == "Darwin":
+        try:
+            from AppKit import NSScreen
+
+            screen = NSScreen.mainScreen()
+            frame = screen.visibleFrame() if screen is not None else None
+            if frame is not None:
+                screen_width = int(frame.size.width)
+                screen_height = int(frame.size.height)
+                logger.info(f"Detected screen size (macOS AppKit): {screen_width}x{screen_height}")
+                return screen_width, screen_height
+        except Exception as e:
+            logger.warning(f"Could not detect screen size using macOS AppKit: {e}")
+
+        try:
+            import subprocess
+
+            result = subprocess.run(
+                ["osascript", "-e", 'tell application "Finder" to get bounds of window of desktop'],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=3,
+            )
+            bounds = [int(value.strip()) for value in result.stdout.strip().split(",")]
+            if len(bounds) == 4:
+                screen_width = bounds[2] - bounds[0]
+                screen_height = bounds[3] - bounds[1]
+                logger.info(f"Detected screen size (macOS AppleScript): {screen_width}x{screen_height}")
+                return screen_width, screen_height
+        except Exception as e:
+            logger.warning(f"Could not detect screen size using macOS AppleScript: {e}")
+
+        logger.warning("Using default macOS screen size: 1920x1080")
+        return 1920, 1080
+
     try:
         # Try using tkinter (cross-platform, part of standard library)
         import tkinter as tk
@@ -108,6 +147,9 @@ class CrowdMonitor:
 
         # WebSocket sender (started in initialize() if enabled)
         self.ws_sender: Optional[WebSocketSender] = None
+
+        # OpenCV window state
+        self.window_name = "Enhanced Crowd Monitor"
 
     def _adjust_display_size_for_screen(self):
         """
@@ -194,8 +236,12 @@ class CrowdMonitor:
                     url=self.config.websocket_url,
                     device_id=device_id,
                     debounce_seconds=self.config.websocket_debounce_seconds,
+                    request_enabled=self.config.websocket_request_enabled,
+                    log_flow=self.config.websocket_log_flow,
                 )
                 self.ws_sender.start()
+            else:
+                logger.info("WebSocket flow disabled by configuration.")
 
             # Show controls
             self._show_controls()
@@ -364,6 +410,7 @@ class CrowdMonitor:
 
         last_time = time.time()
         show_fps = False
+        window_created = False
 
         try:
             while True:
@@ -394,7 +441,7 @@ class CrowdMonitor:
                 if self.current_mode in ['4', '5']:
                     self.occupancy_grid.update(tracks, dt)
 
-                # Schedule WebSocket payload (3-second debounce)
+                # Schedule WebSocket payload for interval debounce
                 if self.ws_sender and self.occupancy_grid:
                     payload = build_payload(
                         tracks=tracks,
@@ -414,11 +461,20 @@ class CrowdMonitor:
 
                 # Display the frame
                 window_title = f"Enhanced Crowd Monitor - {self.display_modes[self.current_mode]}"
-                cv2.namedWindow(window_title, cv2.WINDOW_NORMAL)  # Make window resizable
-                cv2.imshow(window_title, display_frame)
+                if not window_created:
+                    create_visible_window(self.window_name, display_frame.shape[1], display_frame.shape[0])
+                    window_created = True
+                else:
+                    try:
+                        cv2.resizeWindow(self.window_name, display_frame.shape[1], display_frame.shape[0])
+                    except cv2.error:
+                        pass
+
+                set_window_title(self.window_name, window_title)
+                cv2.imshow(self.window_name, display_frame)
 
                 # Handle user input
-                key = cv2.waitKey(1) & 0xFF
+                key = wait_key(1) & 0xFF
 
                 if key == ord('q'):
                     logger.info("User requested quit")

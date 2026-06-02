@@ -2,8 +2,8 @@
 WebSocket sender for Stampede Management.
 
 Builds structured payloads from live tracking data and sends them to a
-Spring Boot backend with a per-device 3-second debounce — only the most
-recent snapshot is transmitted after the quiet period expires.
+    Spring Boot backend with a per-device debounce interval — only the most
+    recent snapshot is transmitted/logged once per interval.
 
 Expected backend endpoint: ws://<host>:<port>/ws-raw  (plain JSON, no STOMP)
 """
@@ -160,14 +160,19 @@ def build_payload(
     # ── Tracked persons ────────────────────────────────────────────────
     tracked_persons: List[PersonTrackPayload] = []
     for t in tracks:
-        x, y, w, h = (int(v) for v in t.bbox)
+        x1, y1, x2, y2 = (int(v) for v in t.bbox)
         wx: Optional[float] = None
         wy: Optional[float] = None
         if t.world_position:
             wx, wy = float(t.world_position[0]), float(t.world_position[1])
         tracked_persons.append(PersonTrackPayload(
             track_id=int(t.track_id),
-            bounding_box=BoundingBoxPayload(x=x, y=y, width=w, height=h),
+            bounding_box=BoundingBoxPayload(
+                x=x1,
+                y=y1,
+                width=max(0, x2 - x1),
+                height=max(0, y2 - y1),
+            ),
             confidence=float(t.confidence),
             age=int(t.age),
             confirmed=bool(t.confirmed),
@@ -241,14 +246,15 @@ def build_payload(
 
 class WebSocketSender:
     """
-    Sends MonitoringPayload to a WebSocket endpoint with 3-second debounce.
+    Sends MonitoringPayload to a WebSocket endpoint with interval debounce.
 
-    The debounce window is per-instance (one device). Each call to
-    ``schedule()`` resets a 3-second timer; the payload is only transmitted
-    once the timer fires without interruption.
+    The debounce window is per-instance (one device). The first call to
+    ``schedule()`` starts the timer; calls during that window replace the
+    pending payload, so the latest snapshot is transmitted/logged once the
+    interval expires.
 
     The WebSocket connection runs in a background daemon thread and
-    reconnects automatically on failure.
+    reconnects automatically on failure when backend requests are enabled.
     """
 
     def __init__(
@@ -257,11 +263,15 @@ class WebSocketSender:
             device_id: str,
             debounce_seconds: float = 3.0,
             reconnect_interval: float = 5.0,
+            request_enabled: bool = False,
+            log_flow: bool = True,
     ):
         self.url = url
         self.device_id = device_id
         self.debounce_seconds = debounce_seconds
         self.reconnect_interval = reconnect_interval
+        self.request_enabled = request_enabled
+        self.log_flow = log_flow
 
         self._ws = None
         self._ws_thread: Optional[threading.Thread] = None
@@ -276,11 +286,17 @@ class WebSocketSender:
 
     def start(self):
         """Open the WebSocket connection in a background daemon thread."""
+        self._running = True
+        self._log_connection_request()
+
+        if not self.request_enabled:
+            logger.info("WebSocket backend request disabled; running in log-only mode.")
+            return
+
         if not WEBSOCKET_AVAILABLE:
             logger.error("websocket-client is required. Install: pip install websocket-client")
             return
 
-        self._running = True
         self._ws_thread = threading.Thread(
             target=self._run_loop, daemon=True, name=f"ws-sender-{self.device_id}"
         )
@@ -289,11 +305,13 @@ class WebSocketSender:
 
     def stop(self):
         """Flush any pending payload and close the connection cleanly."""
-        self._running = False
         with self._timer_lock:
             if self._timer:
                 self._timer.cancel()
                 self._timer = None
+        self._flush(reason="shutdown")
+
+        self._running = False
         if self._ws:
             try:
                 self._ws.close()
@@ -337,35 +355,70 @@ class WebSocketSender:
         """
         Stage a payload for sending.
 
-        Resets the 3-second debounce timer; only the *latest* payload is
-        sent once the timer fires.
+        Starts one debounce timer if needed; only the latest payload staged
+        during that interval is sent/logged once the timer fires.
         """
-        self._pending_payload = payload
         with self._timer_lock:
-            if self._timer is not None:
-                self._timer.cancel()
-            self._timer = threading.Timer(self.debounce_seconds, self._flush)
-            self._timer.daemon = True
-            self._timer.start()
+            self._pending_payload = payload
+            if self._timer is None:
+                self._timer = threading.Timer(self.debounce_seconds, self._flush)
+                self._timer.daemon = True
+                self._timer.start()
 
-    def _flush(self):
+    def _flush(self, reason: str = "debounce"):
         """Transmit the pending payload (called by the debounce timer)."""
-        payload = self._pending_payload
+        with self._timer_lock:
+            payload = self._pending_payload
+            self._pending_payload = None
+            self._timer = None
+
         if payload is None:
             return
 
+        data = json.dumps(asdict(payload), default=str)
+        if self.log_flow:
+            self._log_payload_flow(payload, data, reason)
+
+        if not self.request_enabled:
+            return
+
         if not self._connected or self._ws is None:
-            logger.debug("Not connected — payload dropped (will retry after reconnect).")
+            logger.warning(
+                "[WS FLOW] Backend request skipped because connection is not open "
+                f"(request_id={payload.request_id}, frame={payload.population_data.frame_number})."
+            )
             return
 
         try:
-            data = json.dumps(asdict(payload), default=str)
             self._ws.send(data)
-            logger.debug(
-                f"[WS] Sent → device={payload.device_info.device_id} "
+            logger.info(
+                f"[WS FLOW] Backend request sent | device={payload.device_info.device_id} "
                 f"count={payload.population_data.current_count} "
                 f"alert={payload.population_data.alert_level} "
-                f"frame={payload.population_data.frame_number}"
+                f"frame={payload.population_data.frame_number} "
+                f"request_id={payload.request_id}"
             )
         except Exception as exc:
             logger.warning(f"Failed to send WebSocket message: {exc}")
+
+    def _log_connection_request(self):
+        if not self.log_flow:
+            return
+
+        logger.info(
+            "[WS FLOW 1/2] Connection request | "
+            f"request_enabled={self.request_enabled} "
+            f"url={self.url} device_id={self.device_id} "
+            f"debounce_seconds={self.debounce_seconds}"
+        )
+
+    def _log_payload_flow(self, payload: MonitoringPayload, data: str, reason: str):
+        logger.info(
+            "[WS FLOW 2/2] Debounced payload ready | "
+            f"reason={reason} request_enabled={self.request_enabled} "
+            f"request_id={payload.request_id} "
+            f"frame={payload.population_data.frame_number} "
+            f"people={payload.population_data.current_count} "
+            f"alert={payload.population_data.alert_level} "
+            f"payload={data}"
+        )

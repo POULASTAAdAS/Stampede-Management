@@ -121,7 +121,11 @@ class MonitoringConfig:
 
     # ==================== WebSocket Sender Settings ====================
     websocket_enabled: bool = True
-    """Set to True to stream monitoring data to the Spring Boot backend."""
+    """Set to True to build and process WebSocket monitoring payloads."""
+    websocket_request_enabled: bool = False
+    """Set to True to actually open the WebSocket and send requests to the backend."""
+    websocket_log_flow: bool = True
+    """Set to True to log the connection flow and debounced payload JSON."""
     websocket_url: str = "ws://localhost:8080/ws-raw"
     """Raw WebSocket endpoint on the Spring Boot backend."""
     websocket_device_id: str = ""
@@ -131,7 +135,7 @@ class MonitoringConfig:
     websocket_location: str = "Unknown Location"
     """Physical location label, e.g. 'Gate A – North Entrance'."""
     websocket_debounce_seconds: float = 3.0
-    """Seconds of silence before a payload is sent (debounce window)."""
+    """Seconds between debounced payload sends/logs."""
 
     # ==================== Calibration Settings ====================
     calibration_point_radius: int = 8

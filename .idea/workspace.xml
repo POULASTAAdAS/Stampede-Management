@@ -4,15 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="61092072-476d-41e9-8b1d-16cfb7dba2ce" name="Changes" comment="Update: license manager">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Stampede-Management.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Stampede-Management.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="61092072-476d-41e9-8b1d-16cfb7dba2ce" name="Changes" comment="FEAT: enabled websocket connection">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.venv/pyvenv.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/pyvenv.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/CrowdMonitor_Package_Windows/model/yolov8n.pt" beforeDir="false" afterPath="$PROJECT_DIR$/auth/CrowdMonitor_Package_Windows/model/yolov8n.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/calibration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/monitor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,6 +47,9 @@
     &quot;assignee&quot;: &quot;poulastaa&quot;
   }
 }</component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="3d21e369-53b0-4223-b439-a493c658dddf" />
+  </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/POULASTAAdAS/Stampede-Management.git&quot;,
@@ -70,61 +71,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.4932568916235984" />
-      <entry key="MS500" value="4.149651737971494" />
-      <entry key="S2" value="8.309304033705875" />
-      <entry key="S5" value="15.323874006232312" />
-      <entry key="S10" value="22.735356604594568" />
-      <entry key="S30" value="38.93286470403525" />
-      <entry key="S60" value="58.51898712380185" />
-      <entry key="M2" value="86.44441098890647" />
-      <entry key="M5" value="127.26955434199823" />
-      <entry key="M10" value="160.1619343551601" />
-      <entry key="M15" value="177.88341168848189" />
-      <entry key="M30" value="201.58904383482204" />
-      <entry key="H1" value="216.491430860013" />
-      <entry key="H2" value="224.88824045758108" />
-      <entry key="H4" value="229.35043977851421" />
-      <entry key="D1" value="233.2116786562011" />
-      <entry key="W1" value="233.88704951040572" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0000872913726766" />
+      <entry key="S2" value="1.24714884395033" />
+      <entry key="S5" value="2.621977815507329" />
+      <entry key="S10" value="4.6586780408797335" />
+      <entry key="S30" value="8.027897045290807" />
+      <entry key="S60" value="11.346079156139584" />
+      <entry key="M2" value="26.16510754016076" />
+      <entry key="M5" value="75.5250187658548" />
+      <entry key="M10" value="125.17810095005255" />
+      <entry key="M15" value="152.98446096819072" />
+      <entry key="M30" value="191.1187103120864" />
+      <entry key="H1" value="215.64231999591144" />
+      <entry key="H2" value="229.64834181369486" />
+      <entry key="H4" value="237.14646336445927" />
+      <entry key="D1" value="243.66554130720462" />
+      <entry key="W1" value="244.80872619701879" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
-      <entry key="S2" value="5.441247488726629E-154" />
-      <entry key="S5" value="4.990385871612453E-62" />
-      <entry key="S10" value="2.434052346063945E-31" />
-      <entry key="S30" value="8.81776110096661E-11" />
-      <entry key="S60" value="1.3036440708575789E-5" />
-      <entry key="M2" value="0.005081811536884911" />
-      <entry key="M5" value="0.18303023321743123" />
-      <entry key="M10" value="0.6049123863938638" />
-      <entry key="M15" value="0.9011276691434421" />
-      <entry key="M30" value="1.3424521977318595" />
-      <entry key="H1" value="1.6385589871108635" />
-      <entry key="H2" value="1.810278755719588" />
-      <entry key="H4" value="1.902775625408402" />
-      <entry key="D1" value="1.9834575313596474" />
-      <entry key="W1" value="1.9976283676240307" />
+      <entry key="S2" value="7.117021647830474E-198" />
+      <entry key="S5" value="1.3956420649829482E-79" />
+      <entry key="S10" value="4.070519834056489E-40" />
+      <entry key="S30" value="1.0466423788719935E-13" />
+      <entry key="S60" value="4.491372001327918E-7" />
+      <entry key="M2" value="9.432537742732578E-4" />
+      <entry key="M5" value="0.09331830284695569" />
+      <entry key="M10" value="0.4319311013688493" />
+      <entry key="M15" value="0.7198925146015949" />
+      <entry key="M30" value="1.1998846477423588" />
+      <entry key="H1" value="1.5491105567976038" />
+      <entry key="H2" value="1.7601740803729493" />
+      <entry key="H4" value="1.876258456938754" />
+      <entry key="D1" value="1.9788236244223354" />
+      <entry key="W1" value="1.9969609828221246" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.4487441799509022" />
-      <entry key="MS500" value="4.126676796945377" />
-      <entry key="S2" value="8.297281033408073" />
-      <entry key="S5" value="15.314171127499607" />
-      <entry key="S10" value="22.727883090039878" />
-      <entry key="S30" value="38.92844228517911" />
-      <entry key="S60" value="58.515446442946356" />
-      <entry key="M2" value="86.44650753803482" />
-      <entry key="M5" value="127.44940090707044" />
-      <entry key="M10" value="160.7634232611726" />
-      <entry key="M15" value="178.78142540023737" />
-      <entry key="M30" value="202.92932484066503" />
-      <entry key="H1" value="218.1286990178407" />
-      <entry key="H2" value="226.69781437102608" />
-      <entry key="H4" value="231.2528469863382" />
-      <entry key="D1" value="235.1950724597956" />
-      <entry key="W1" value="235.8846687157386" />
+      <entry key="MS100" value="0.9659363289248455" />
+      <entry key="MS500" value="0.9931792571395357" />
+      <entry key="S2" value="1.2450095878555498" />
+      <entry key="S5" value="2.620225649479697" />
+      <entry key="S10" value="4.657162366533462" />
+      <entry key="S30" value="8.0270449739458" />
+      <entry key="S60" value="11.345464824626683" />
+      <entry key="M2" value="26.165230343045806" />
+      <entry key="M5" value="75.61660205694" />
+      <entry key="M10" value="125.6075307283323" />
+      <entry key="M15" value="153.70182771599914" />
+      <entry key="M30" value="192.31663519800372" />
+      <entry key="H1" value="217.19020058864885" />
+      <entry key="H2" value="231.4078257533895" />
+      <entry key="H4" value="239.02235613298257" />
+      <entry key="D1" value="245.6443009516665" />
+      <entry key="W1" value="246.80567796330783" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -369,7 +370,7 @@
       <workItem from="1780326123573" duration="23000" />
       <workItem from="1780326167047" duration="8742000" />
       <workItem from="1780379363378" duration="310000" />
-      <workItem from="1780428156736" duration="2951000" />
+      <workItem from="1780428156736" duration="3993000" />
     </task>
     <task id="LOCAL-00001" summary="BUG FIX: fixed dependency installation problem">
       <option name="closed" value="true" />
@@ -435,7 +436,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770150354630</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="FEAT: enabled websocket connection">
+      <option name="closed" value="true" />
+      <created>1780432435642</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1780432435642</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -461,7 +470,8 @@
     <MESSAGE value="FEAT: removed un-necessary logs" />
     <MESSAGE value="FIX: fixing license generation for the application" />
     <MESSAGE value="Update: license manager" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update: license manager" />
+    <MESSAGE value="FEAT: enabled websocket connection" />
+    <option name="LAST_COMMIT_MESSAGE" value="FEAT: enabled websocket connection" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="NON_MODAL_COMMIT_POSTPONE_SLOW_CHECKS" value="false" />
@@ -471,7 +481,7 @@
     <SUITE FILE_PATH="coverage/Stampede_Management$license_manager.coverage" NAME="license_manager Coverage Results" MODIFIED="1780326385145" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$Promising_2.coverage" NAME="Promising_2 Coverage Results" MODIFIED="1755987352855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$Promising.coverage" NAME="Promising Coverage Results" MODIFIED="1756016919703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$main.coverage" NAME="main Coverage Results" MODIFIED="1780428187752" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$main.coverage" NAME="main Coverage Results" MODIFIED="1780433060733" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest_1.coverage" NAME="PromisingTest_1 Coverage Results" MODIFIED="1756019874717" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$GPTCode.coverage" NAME="GPTCode Coverage Results" MODIFIED="1755984060653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$config_gui.coverage" NAME="config_gui Coverage Results" MODIFIED="1780379382043" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

@@ -2,7 +2,6 @@
 Detection module for person detection using YOLO.
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import List
@@ -14,6 +13,7 @@ from config import MonitoringConfig
 from logger_config import get_logger
 
 logger = get_logger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 
 def get_resource_path(relative_path: str) -> str:
@@ -33,23 +33,28 @@ def get_resource_path(relative_path: str) -> str:
     try:
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         # This attribute only exists when running from a PyInstaller bundle
-        base_path = sys._MEIPASS  # type: ignore[attr-defined]
+        base_path = Path(sys._MEIPASS)  # type: ignore[attr-defined]
     except AttributeError:
-        # Not running from PyInstaller bundle, use current directory
-        base_path = os.path.abspath(".")
+        # Not running from PyInstaller bundle, use the project directory
+        base_path = PROJECT_ROOT
 
     # First, try the path relative to base_path
-    resource_path = os.path.join(base_path, relative_path)
-    if os.path.exists(resource_path):
-        return resource_path
+    resource_path = base_path / relative_path
+    if resource_path.exists():
+        return str(resource_path)
 
     # If not found, try relative to executable (for distribution packages)
     if getattr(sys, 'frozen', False):
         # Running as executable
-        exe_dir = os.path.dirname(sys.executable)
-        resource_path = os.path.join(exe_dir, relative_path)
-        if os.path.exists(resource_path):
-            return resource_path
+        exe_dir = Path(sys.executable).resolve().parent
+        resource_path = exe_dir / relative_path
+        if resource_path.exists():
+            return str(resource_path)
+
+    # Local repo fallback for the included packaged model layout.
+    packaged_resource_path = PROJECT_ROOT / "auth" / "CrowdMonitor_Package_Windows" / relative_path
+    if packaged_resource_path.exists():
+        return str(packaged_resource_path)
 
     # Return the original relative path and let the caller handle it
     return relative_path

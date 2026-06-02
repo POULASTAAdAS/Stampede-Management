@@ -3,7 +3,20 @@ Main entry point for the Enhanced Crowd Monitoring System.
 """
 
 import argparse
+import os
 import sys
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+if Path.cwd() != APP_DIR:
+    os.chdir(APP_DIR)
+
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
+
+AUTH_DIR = APP_DIR / "auth"
+if str(AUTH_DIR) not in sys.path:
+    sys.path.insert(0, str(AUTH_DIR))
 
 import cv2
 
@@ -11,8 +24,6 @@ from auth.license_manager import LicenseManager
 from config import MonitoringConfig
 from logger_config import get_logger
 from monitor import CrowdMonitor
-
-sys.path.insert(0, 'auth')
 
 logger = get_logger(__name__)
 
@@ -87,6 +98,24 @@ def parse_arguments() -> MonitoringConfig:
     parser.add_argument("--max-display-height", type=int, default=900,
                         help="Maximum display window height in pixels (auto-adjusted to fit screen)")
 
+    # Backend streaming settings
+    parser.add_argument("--disable-websocket", action="store_true",
+                        help="Disable WebSocket payload flow entirely")
+    parser.add_argument("--enable-websocket-request", action="store_true",
+                        help="Actually connect and send WebSocket requests to the backend")
+    parser.add_argument("--disable-websocket-flow-log", action="store_true",
+                        help="Disable temporary WebSocket flow/payload logging")
+    parser.add_argument("--websocket-url", type=str, default="ws://localhost:8080/ws-raw",
+                        help="Backend WebSocket URL")
+    parser.add_argument("--websocket-device-id", type=str, default="",
+                        help="Device ID sent in WebSocket payloads")
+    parser.add_argument("--websocket-device-name", type=str, default="",
+                        help="Device name sent in WebSocket payloads")
+    parser.add_argument("--websocket-location", type=str, default="Unknown Location",
+                        help="Device location sent in WebSocket payloads")
+    parser.add_argument("--websocket-debounce", type=float, default=3.0,
+                        help="Seconds between debounced WebSocket payload sends/logs")
+
     args = parser.parse_args()
 
     # Create configuration object
@@ -111,7 +140,15 @@ def parse_arguments() -> MonitoringConfig:
         calibration_area_height=args.calibration_height,
         auto_calibration=args.auto_calibration,
         max_display_width=args.max_display_width,
-        max_display_height=args.max_display_height
+        max_display_height=args.max_display_height,
+        websocket_enabled=not args.disable_websocket,
+        websocket_request_enabled=args.enable_websocket_request,
+        websocket_log_flow=not args.disable_websocket_flow_log,
+        websocket_url=args.websocket_url,
+        websocket_device_id=args.websocket_device_id,
+        websocket_device_name=args.websocket_device_name,
+        websocket_location=args.websocket_location,
+        websocket_debounce_seconds=args.websocket_debounce,
     )
 
     return config
@@ -121,9 +158,8 @@ def main():
     """Main entry point"""
     try:
         # Check license before anything else
-        import os
-        license_path = os.path.join('auth', 'license.dat')
-        license_manager = LicenseManager(license_file=license_path)
+        license_path = AUTH_DIR / 'license.dat'
+        license_manager = LicenseManager(license_file=str(license_path))
         is_valid, message = license_manager.validate_license()
 
         if not is_valid:
