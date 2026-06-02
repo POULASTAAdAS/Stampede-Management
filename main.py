@@ -109,6 +109,8 @@ def parse_arguments() -> MonitoringConfig:
                         help="Backend WebSocket URL")
     parser.add_argument("--websocket-device-id", type=str, default="",
                         help="Device ID sent in WebSocket payloads")
+    parser.add_argument("--websocket-mac-address", type=str, default="",
+                        help="MAC address sent in WebSocket payloads; defaults to local machine MAC")
     parser.add_argument("--websocket-device-name", type=str, default="",
                         help="Device name sent in WebSocket payloads")
     parser.add_argument("--websocket-location", type=str, default="Unknown Location",
@@ -146,6 +148,7 @@ def parse_arguments() -> MonitoringConfig:
         websocket_log_flow=not args.disable_websocket_flow_log,
         websocket_url=args.websocket_url,
         websocket_device_id=args.websocket_device_id,
+        websocket_mac_address=args.websocket_mac_address,
         websocket_device_name=args.websocket_device_name,
         websocket_location=args.websocket_location,
         websocket_debounce_seconds=args.websocket_debounce,

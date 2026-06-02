@@ -130,6 +130,8 @@ class MonitoringConfig:
     """Raw WebSocket endpoint on the Spring Boot backend."""
     websocket_device_id: str = ""
     """Unique identifier for this device/camera. Defaults to hostname if empty."""
+    websocket_mac_address: str = ""
+    """MAC address sent to the backend. Defaults to the local machine MAC if empty."""
     websocket_device_name: str = ""
     """Human-readable name shown in the dashboard. Defaults to device_id if empty."""
     websocket_location: str = "Unknown Location"

@@ -25,11 +25,19 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+
+def get_local_mac_address() -> str:
+    """Return the local machine MAC address in colon-separated format."""
+    mac = uuid.getnode()
+    return ":".join(f"{(mac >> shift) & 0xff:02x}" for shift in range(40, -1, -8))
+
+
 try:
     import websocket as _ws_lib
 
     WEBSOCKET_AVAILABLE = True
 except ImportError:
+    _ws_lib = None
     WEBSOCKET_AVAILABLE = False
     logger.warning("websocket-client not installed — WebSocket sender disabled. "
                    "Run: pip install websocket-client")
@@ -93,6 +101,7 @@ class DeviceInfoPayload:
     device_name: str
     location: str
     camera_source: str
+    mac_address: Optional[str] = None
     ip_address: Optional[str] = None
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
@@ -136,6 +145,7 @@ def build_payload(
     """
     # ── Device info ────────────────────────────────────────────────────
     device_id = config.websocket_device_id or socket.gethostname()
+    mac_address = config.websocket_mac_address or get_local_mac_address()
     ip_address: Optional[str] = None
     try:
         ip_address = socket.gethostbyname(socket.gethostname())
@@ -147,6 +157,7 @@ def build_payload(
         device_name=config.websocket_device_name or device_id,
         location=config.websocket_location,
         camera_source=str(config.source),
+        mac_address=mac_address,
         ip_address=ip_address,
     )
 
@@ -393,6 +404,7 @@ class WebSocketSender:
             self._ws.send(data)
             logger.info(
                 f"[WS FLOW] Backend request sent | device={payload.device_info.device_id} "
+                f"mac={payload.device_info.mac_address} "
                 f"count={payload.population_data.current_count} "
                 f"alert={payload.population_data.alert_level} "
                 f"frame={payload.population_data.frame_number} "
