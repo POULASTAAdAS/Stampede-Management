@@ -1,17 +1,17 @@
 # Enhanced Crowd Monitoring System Dependencies
 
 # Core dependencies
-# Note: For Python 3.14, install using: pip install --only-binary :all: <package>
-# This ensures pre-built wheels are used (no C compiler required)
 opencv-python>=4.8.0,<5.0.0
-numpy>=2.3.0  # NumPy 2.3+ has pre-built wheels for Python 3.14
+# Keep NumPy compatible with the Python version used by the local venv.
+# Python 3.9 cannot install NumPy 2.1+; Python 3.10 cannot install 2.3+.
+numpy>=2.0.0,<2.1.0; python_version < "3.10"
+numpy>=2.2.0,<2.3.0; python_version >= "3.10" and python_version < "3.11"
+numpy>=2.3.0,<3.0.0; python_version >= "3.11"
 ultralytics>=8.0.0
 shapely>=2.0.0
 
-# Installation instructions for Python 3.14+:
-# 1. pip install --only-binary :all: numpy
-# 2. pip install --no-deps opencv-python ultralytics shapely
-# 3. pip install --only-binary :all: matplotlib pillow pyyaml requests scipy torch torchvision psutil polars ultralytics-thop
+# WebSocket sender (stream data to Spring Boot backend)
+websocket-client>=1.6.0
 
 # Optional: For DeepSort tracking
 deep-sort-realtime>=1.3.0

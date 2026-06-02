@@ -119,6 +119,20 @@ class MonitoringConfig:
     # Split view layout
     split_view_divisor: int = 2  # Divide camera dimensions by this for split view
 
+    # ==================== WebSocket Sender Settings ====================
+    websocket_enabled: bool = True
+    """Set to True to stream monitoring data to the Spring Boot backend."""
+    websocket_url: str = "ws://localhost:8080/ws-raw"
+    """Raw WebSocket endpoint on the Spring Boot backend."""
+    websocket_device_id: str = ""
+    """Unique identifier for this device/camera. Defaults to hostname if empty."""
+    websocket_device_name: str = ""
+    """Human-readable name shown in the dashboard. Defaults to device_id if empty."""
+    websocket_location: str = "Unknown Location"
+    """Physical location label, e.g. 'Gate A – North Entrance'."""
+    websocket_debounce_seconds: float = 3.0
+    """Seconds of silence before a payload is sent (debounce window)."""
+
     # ==================== Calibration Settings ====================
     calibration_point_radius: int = 8
     calibration_point_color: Tuple[int, int, int] = (0, 255, 0)

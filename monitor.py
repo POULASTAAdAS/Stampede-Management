@@ -16,6 +16,7 @@ from logger_config import get_logger
 from occupancy import OccupancyGrid
 from trackers import DeepSortTracker, SimpleCentroidTracker
 from visualizer import MonitorVisualizer
+from websocket_sender import WebSocketSender, build_payload
 
 logger = get_logger(__name__)
 
@@ -105,6 +106,9 @@ class CrowdMonitor:
         # Stop flag function (can be set externally by GUI)
         self.should_stop = lambda: False
 
+        # WebSocket sender (started in initialize() if enabled)
+        self.ws_sender: Optional[WebSocketSender] = None
+
     def _adjust_display_size_for_screen(self):
         """
         Automatically adjust max display size based on detected screen resolution.
@@ -183,6 +187,16 @@ class CrowdMonitor:
             # Initialize visualizer
             self.visualizer = MonitorVisualizer(self.config, self.camera_width, self.camera_height)
 
+            # Start WebSocket sender if enabled
+            if self.config.websocket_enabled:
+                device_id = self.config.websocket_device_id or __import__('socket').gethostname()
+                self.ws_sender = WebSocketSender(
+                    url=self.config.websocket_url,
+                    device_id=device_id,
+                    debounce_seconds=self.config.websocket_debounce_seconds,
+                )
+                self.ws_sender.start()
+
             # Show controls
             self._show_controls()
 
@@ -191,6 +205,10 @@ class CrowdMonitor:
 
             cap.release()
             cv2.destroyAllWindows()
+
+            if self.ws_sender:
+                self.ws_sender.stop()
+
             return True
 
         except Exception as e:
@@ -375,6 +393,18 @@ class CrowdMonitor:
                 # Update occupancy grid (only for monitoring modes)
                 if self.current_mode in ['4', '5']:
                     self.occupancy_grid.update(tracks, dt)
+
+                # Schedule WebSocket payload (3-second debounce)
+                if self.ws_sender and self.occupancy_grid:
+                    payload = build_payload(
+                        tracks=tracks,
+                        occupancy_grid=self.occupancy_grid,
+                        frame_count=self.frame_count,
+                        fps_counter=self.fps_counter,
+                        fps_start_time=self.fps_start_time,
+                        config=self.config,
+                    )
+                    self.ws_sender.schedule(payload)
 
                 # Generate visualization
                 display_frame = self._create_visualization(frame, tracks, show_fps)

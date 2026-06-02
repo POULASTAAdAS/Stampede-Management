@@ -5,34 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="61092072-476d-41e9-8b1d-16cfb7dba2ce" name="Changes" comment="Update: license manager">
-      <change beforePath="$PROJECT_DIR$/.idea/ChatHistory_schema_v3.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ChatHistory_schema_v3.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/Stampede-Management.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Stampede-Management.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLEANUP_COMPLETE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/FILES_OVERVIEW.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/INSTALLATION_NOTES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE_FIX_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/QUICK_LICENSE_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/START_HERE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/calibration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.venv/pyvenv.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/pyvenv.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/ARCHITECTURE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/INDEX.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/MIGRATION_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/PROJECT_SUMMARY.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/QUICK_REFERENCE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/read/1_DOCUMENTATION_INDEX.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/read/2_BEGINNER_GUIDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/read/3_VISUAL_CONCEPTS.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/read/4_CODE_WALKTHROUGH.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/read/5_PRACTICAL_EXAMPLES.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/example_usage.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/monitor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +25,7 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="61" />
+    <option name="cachedIndexableFilesCount" value="55" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="FileTemplateManagerImpl">
@@ -69,12 +49,17 @@
     &quot;assignee&quot;: &quot;poulastaa&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/POULASTAAdAS/Stampede-Management.git",
-    "accountId": "6527c5d9-21dc-44aa-bd69-a3a43205f40e"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/POULASTAAdAS/Stampede-Management.git&quot;,
+    &quot;accountId&quot;: &quot;350b585d-5fa3-4e39-8700-1b4db4101f8c&quot;
   }
-}]]></component>
+}</component>
+  <component name="InvalidFacetManager">
+    <ignored-facets>
+      <facet id="Stampede-Management/invalid/Python facet" />
+    </ignored-facets>
+  </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -82,6 +67,65 @@
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.4932568916235984" />
+      <entry key="MS500" value="4.149651737971494" />
+      <entry key="S2" value="8.309304033705875" />
+      <entry key="S5" value="15.323874006232312" />
+      <entry key="S10" value="22.735356604594568" />
+      <entry key="S30" value="38.93286470403525" />
+      <entry key="S60" value="58.51898712380185" />
+      <entry key="M2" value="86.44441098890647" />
+      <entry key="M5" value="127.26955434199823" />
+      <entry key="M10" value="160.1619343551601" />
+      <entry key="M15" value="177.88341168848189" />
+      <entry key="M30" value="201.58904383482204" />
+      <entry key="H1" value="216.491430860013" />
+      <entry key="H2" value="224.88824045758108" />
+      <entry key="H4" value="229.35043977851421" />
+      <entry key="D1" value="233.2116786562011" />
+      <entry key="W1" value="233.88704951040572" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="5.441247488726629E-154" />
+      <entry key="S5" value="4.990385871612453E-62" />
+      <entry key="S10" value="2.434052346063945E-31" />
+      <entry key="S30" value="8.81776110096661E-11" />
+      <entry key="S60" value="1.3036440708575789E-5" />
+      <entry key="M2" value="0.005081811536884911" />
+      <entry key="M5" value="0.18303023321743123" />
+      <entry key="M10" value="0.6049123863938638" />
+      <entry key="M15" value="0.9011276691434421" />
+      <entry key="M30" value="1.3424521977318595" />
+      <entry key="H1" value="1.6385589871108635" />
+      <entry key="H2" value="1.810278755719588" />
+      <entry key="H4" value="1.902775625408402" />
+      <entry key="D1" value="1.9834575313596474" />
+      <entry key="W1" value="1.9976283676240307" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.4487441799509022" />
+      <entry key="MS500" value="4.126676796945377" />
+      <entry key="S2" value="8.297281033408073" />
+      <entry key="S5" value="15.314171127499607" />
+      <entry key="S10" value="22.727883090039878" />
+      <entry key="S30" value="38.92844228517911" />
+      <entry key="S60" value="58.515446442946356" />
+      <entry key="M2" value="86.44650753803482" />
+      <entry key="M5" value="127.44940090707044" />
+      <entry key="M10" value="160.7634232611726" />
+      <entry key="M15" value="178.78142540023737" />
+      <entry key="M30" value="202.92932484066503" />
+      <entry key="H1" value="218.1286990178407" />
+      <entry key="H2" value="226.69781437102608" />
+      <entry key="H4" value="231.2528469863382" />
+      <entry key="D1" value="235.1950724597956" />
+      <entry key="W1" value="235.8846687157386" />
+    </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
@@ -94,47 +138,52 @@
     <option name="showLibraryContents" value="true" />
     <option name="showScratchesAndConsoles" value="false" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.CaludCode.executor": "Run",
-    "Python.GPTCode.executor": "Run",
-    "Python.GPTTest.executor": "Run",
-    "Python.Promising.executor": "Run",
-    "Python.PromisingTest.executor": "Run",
-    "Python.PromisingTest_1.executor": "Run",
-    "Python.PromisingTest_2.executor": "Run",
-    "Python.Promising_2.executor": "Run",
-    "Python.config_gui.executor": "Run",
-    "Python.crowd_monitor_deepsort_full.executor": "Run",
-    "Python.license_manager.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.python main.py --max-display-width 1920 --max-display-height 1080.executor": "Run",
-    "Python.test_system.executor": "Run",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ShowUsagesActions.previewPropertyKey": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/Stampede-Management/auth/CrowdMonitor_Package_Windows/model",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "settings.sync",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.CaludCode.executor&quot;: &quot;Run&quot;,
+    &quot;Python.GPTCode.executor&quot;: &quot;Run&quot;,
+    &quot;Python.GPTTest.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Promising.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PromisingTest.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PromisingTest_1.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PromisingTest_2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Promising_2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.config_gui.executor&quot;: &quot;Run&quot;,
+    &quot;Python.crowd_monitor_deepsort_full.executor&quot;: &quot;Run&quot;,
+    &quot;Python.license_generator_tool.executor&quot;: &quot;Run&quot;,
+    &quot;Python.license_manager.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.python main.py --max-display-width 1920 --max-display-height 1080.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_system.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ShowUsagesActions.previewPropertyKey&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/poulastaad/personal/Stampede-Management&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Stampede-Management\auth\CrowdMonitor_Package_Windows\model" />
@@ -147,7 +196,7 @@
       <recent name="E:\Stampede-Management\docs\read" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.config_gui">
+  <component name="RunManager">
     <configuration name="config_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Stampede-Management" />
       <option name="ENV_FILES" value="" />
@@ -157,10 +206,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.9 (PyCharmMiscProject)" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/config_gui.py" />
@@ -181,13 +232,15 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.9 (PyCharmMiscProject)" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/admin" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
-      <option name="SCRIPT_NAME" value="E:\Stampede-Management\auth\license_generator_tool.py" />
+      <option name="SCRIPT_NAME" value="E:/Stampede-Management/auth/license_generator_tool.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -205,10 +258,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.9 (PyCharmMiscProject)" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/license_manager.py" />
@@ -233,6 +288,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="main.py" />
@@ -257,6 +313,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_system.py" />
@@ -270,15 +327,17 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.config_gui" />
         <item itemvalue="Python.python main.py --max-display-width 1920 --max-display-height 1080" />
+        <item itemvalue="Python.config_gui" />
+        <item itemvalue="Python.license_manager" />
+        <item itemvalue="Python.license_generator_tool" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-0978a7220b69-9867c7d4c0a4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.28294.336" />
+        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
       </set>
     </attachedChunks>
   </component>
@@ -306,6 +365,11 @@
       <workItem from="1770285251804" duration="293000" />
       <workItem from="1770797254807" duration="21000" />
       <workItem from="1770838433109" duration="3333000" />
+      <workItem from="1779856264668" duration="3627000" />
+      <workItem from="1780326123573" duration="23000" />
+      <workItem from="1780326167047" duration="8742000" />
+      <workItem from="1780379363378" duration="310000" />
+      <workItem from="1780428156736" duration="2951000" />
     </task>
     <task id="LOCAL-00001" summary="BUG FIX: fixed dependency installation problem">
       <option name="closed" value="true" />
@@ -403,20 +467,20 @@
     <option name="NON_MODAL_COMMIT_POSTPONE_SLOW_CHECKS" value="false" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Stampede_Management$GPTCode.coverage" NAME="GPTCode Coverage Results" MODIFIED="1755984060653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$crowd_monitor_deepsort_full.coverage" NAME="crowd_monitor_deepsort_full Coverage Results" MODIFIED="1755985305293" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest_1.coverage" NAME="PromisingTest_1 Coverage Results" MODIFIED="1756019874717" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$main.coverage" NAME="main Coverage Results" MODIFIED="1765701405049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$CaludCode.coverage" NAME="CaludCode Coverage Results" MODIFIED="1755982930016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$Promising.coverage" NAME="Promising Coverage Results" MODIFIED="1756016919703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$config_gui.coverage" NAME="config_gui Coverage Results" MODIFIED="1770844547248" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$GPTTest.coverage" NAME="GPTTest Coverage Results" MODIFIED="1755986105776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$license_manager.coverage" NAME="license_manager Coverage Results" MODIFIED="1770045138574" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$test_system.coverage" NAME="test_system Coverage Results" MODIFIED="1770151043113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$license_manager.coverage" NAME="license_manager Coverage Results" MODIFIED="1780326385145" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$Promising_2.coverage" NAME="Promising_2 Coverage Results" MODIFIED="1755987352855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$python_main_py___max_display_width_1920___max_display_height_1080.coverage" NAME="python main.py --max-display-width 1920 --max-display-height 1080 Coverage Results" MODIFIED="1770843639591" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest.coverage" NAME="PromisingTest Coverage Results" MODIFIED="1762462448559" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$Promising.coverage" NAME="Promising Coverage Results" MODIFIED="1756016919703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$main.coverage" NAME="main Coverage Results" MODIFIED="1780428187752" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest_1.coverage" NAME="PromisingTest_1 Coverage Results" MODIFIED="1756019874717" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$GPTCode.coverage" NAME="GPTCode Coverage Results" MODIFIED="1755984060653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$config_gui.coverage" NAME="config_gui Coverage Results" MODIFIED="1780379382043" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$crowd_monitor_deepsort_full.coverage" NAME="crowd_monitor_deepsort_full Coverage Results" MODIFIED="1755985305293" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest_2.coverage" NAME="PromisingTest_2 Coverage Results" MODIFIED="1756017449761" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$python_main_py___max_display_width_1920___max_display_height_1080.coverage" NAME="python main.py --max-display-width 1920 --max-display-height 1080 Coverage Results" MODIFIED="1780431080813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$CaludCode.coverage" NAME="CaludCode Coverage Results" MODIFIED="1755982930016" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$PromisingTest.coverage" NAME="PromisingTest Coverage Results" MODIFIED="1762462448559" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Stampede_Management$GPTTest.coverage" NAME="GPTTest Coverage Results" MODIFIED="1755986105776" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
