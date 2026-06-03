@@ -143,9 +143,20 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
+        .header-metrics {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .metric-pill,
         .room-count {
             font-size: 13px;
             color: var(--text-muted);
@@ -153,6 +164,15 @@
             border: 1px solid var(--border2);
             padding: 4px 10px;
             border-radius: 20px;
+        }
+
+        .metric-pill strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .metric-pill.critical strong {
+            color: var(--critical);
         }
 
         .conn-status {
@@ -345,6 +365,19 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text);
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-device-id {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: "SF Mono", "Consolas", monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             margin-bottom: 2px;
         }
 
@@ -827,6 +860,14 @@
                 min-width: 200px;
             }
 
+            .header-metrics {
+                display: none;
+            }
+
+            .header-right {
+                gap: 8px;
+            }
+
             .content {
                 overflow-y: auto;
             }
@@ -846,7 +887,11 @@
             </div>
         </div>
         <div class="header-right">
-            <span class="room-count" id="roomCount">0 Active Rooms</span>
+            <div class="header-metrics">
+                <span class="metric-pill"><strong id="peopleTotal">0</strong> People</span>
+                <span class="metric-pill critical"><strong id="criticalTotal">0</strong> Critical</span>
+            </div>
+            <span class="room-count" id="roomCount">0 Rooms</span>
             <div class="conn-status">
                 <div class="status-dot" id="statusDot"></div>
                 <span id="statusText">Connecting…</span>
@@ -896,6 +941,7 @@
     function relativeTime(isoOrEpoch) {
       if (!isoOrEpoch) return '—';
       const t = typeof isoOrEpoch === 'number' ? isoOrEpoch : new Date(isoOrEpoch).getTime();
+      if (Number.isNaN(t)) return '—';
       const s = Math.floor((Date.now() - t) / 1000);
       if (s < 5)    return 'just now';
       if (s < 60)   return s + 's ago';
@@ -915,7 +961,23 @@
 
     function alertClass(level) {
       if (!level) return 'unknown';
-      return level.toLowerCase();
+      const cls = String(level).toLowerCase();
+      return ['normal', 'warning', 'critical'].includes(cls) ? cls : 'unknown';
+    }
+
+    function asNumber(value) {
+      if (value === null || value === undefined || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmtNumber(value, digits = 1) {
+      const n = asNumber(value);
+      return n === null ? '—' : n.toFixed(digits);
+    }
+
+    function textValue(value) {
+      return value === null || value === undefined ? '' : String(value);
     }
 
     // ── Dashboard class ─────────────────────────────────────────────────────────
@@ -984,14 +1046,49 @@
         }
       }
 
+      _cacheRoomPayloads(rooms) {
+        rooms.forEach(room => {
+          if (room?.roomId && room.latestPayload) {
+            this.liveData[room.roomId] = room.latestPayload;
+          }
+        });
+      }
+
+      _roomData(room) {
+        if (!room) return {};
+        return this.liveData[room.roomId] || room.latestPayload || {};
+      }
+
+      _findRoom(roomId) {
+        return this.rooms.find(r => r.roomId === roomId) || null;
+      }
+
+      _searchText(room) {
+        const d = this._roomData(room);
+        const di = d.device_info || {};
+        return [
+          room.roomId,
+          room.identifierValue,
+          di.device_id,
+          di.device_name,
+          di.location,
+          di.mac_address,
+          di.ip_address,
+        ].map(textValue).join(' ').toLowerCase();
+      }
+
       // ── Message handling ───────────────────────────────────────────────────
 
       _handleMessage(msg) {
         switch (msg.type) {
           case 'room_list':
             this.rooms = msg.rooms || [];
+            this._cacheRoomPayloads(this.rooms);
             this._renderRoomList();
-            this._updateRoomCount();
+            this._updateHeaderMetrics();
+            if (this.selectedRoomId && this.liveData[this.selectedRoomId]) {
+              this._renderRoomDetail(this.liveData[this.selectedRoomId]);
+            }
             break;
 
           case 'room_update':
@@ -1000,6 +1097,7 @@
             if (msg.roomId === this.selectedRoomId) {
               this._renderRoomDetail(msg.data);
             }
+            this._updateHeaderMetrics();
             // Debounced sidebar refresh (avoids thrash when many rooms update together)
             if (!this.renderTimer) {
               this.renderTimer = setTimeout(() => {
@@ -1044,8 +1142,10 @@
         detailEl.style.display = 'flex';
 
         // Show cached data immediately (or loading spinner)
-        if (this.liveData[roomId]) {
-          this._renderRoomDetail(this.liveData[roomId]);
+        const room = this._findRoom(roomId);
+        const cachedData = this._roomData(room);
+        if (cachedData && Object.keys(cachedData).length) {
+          this._renderRoomDetail(cachedData);
         } else {
           detailEl.innerHTML = '<div class="loading">Waiting for live data…</div>';
         }
@@ -1059,48 +1159,44 @@
 
         const filtered = this.rooms.filter(r => {
           if (!query) return true;
-          const d = this.liveData[r.roomId];
-          const name = d?.device_info?.device_name || '';
-          const loc  = d?.device_info?.location    || '';
-          return (
-            r.identifierValue.toLowerCase().includes(query) ||
-            r.roomId.toLowerCase().includes(query)          ||
-            name.toLowerCase().includes(query)              ||
-            loc.toLowerCase().includes(query)
-          );
+          return this._searchText(r).includes(query);
         });
 
         if (filtered.length === 0) {
-          container.innerHTML = `<div class="no-rooms">${query ? `No rooms matching "<b>${escHtml(query)}</b>"` : 'No active rooms yet'}</div>`;
+          container.innerHTML = `<div class="no-rooms">${query ? `No rooms matching Device ID "<b>${escHtml(query)}</b>"` : 'No active rooms yet'}</div>`;
           return;
         }
 
         container.innerHTML = filtered.map(room => {
-          const d     = this.liveData[room.roomId] || {};
+          const d     = this._roomData(room);
           const pd    = d.population_data || {};
           const di    = d.device_info     || {};
           const alert = alertClass(pd.alert_level);
-          const name  = escHtml(di.device_name || room.identifierValue);
+          const deviceId = textValue(di.device_id || room.identifierValue || room.roomId);
+          const name  = escHtml(di.device_name || deviceId);
           const loc   = escHtml(di.location || '');
-          const count = pd.current_count !== undefined ? pd.current_count : '—';
-          const fps   = pd.fps    !== undefined ? pd.fps.toFixed(1) : null;
+          const count = asNumber(pd.current_count);
+          const fps   = asNumber(pd.fps);
           const isSel = room.roomId === this.selectedRoomId;
+          const messages = asNumber(room.messageCount);
+          const messageText = messages === null ? '' : `${messages.toLocaleString()} msg`;
 
           return `
             <div class="room-card${isSel ? ' selected' : ''}" data-room-id="${escHtml(room.roomId)}">
               <div class="card-row1">
                 <span class="alert-dot ${alert}"></span>
-                <span class="card-room-id" title="${escHtml(room.roomId)}">${escHtml(room.roomId)}</span>
+                <span class="card-room-id" title="${escHtml(room.roomId)}">${escHtml(room.identifierType || 'ROOM')}</span>
               </div>
               <div class="card-device-name">${name}</div>
+              <div class="card-device-id" title="${escHtml(deviceId)}">${escHtml(deviceId)}</div>
               ${loc ? `<div class="card-location">📍 ${loc}</div>` : ''}
               <div class="card-stats">
-                <span class="card-stat"><span class="card-stat-val">👥 ${count}</span> people</span>
-                ${fps ? `<span class="card-stat"><span class="card-stat-val">⚡ ${fps}</span> fps</span>` : ''}
+                <span class="card-stat"><span class="card-stat-val">👥 ${count ?? '—'}</span> people</span>
+                ${fps !== null ? `<span class="card-stat"><span class="card-stat-val">⚡ ${fps.toFixed(1)}</span> fps</span>` : ''}
               </div>
               <div class="card-footer">
                 <span class="badge ${alert}">${(pd.alert_level || 'UNKNOWN').toUpperCase()}</span>
-                <span class="msg-count" data-ts="${escHtml(room.lastSeenAt || '')}">${relativeTime(room.lastSeenAt)}</span>
+                <span class="msg-count" title="${escHtml(messageText)}" data-ts="${escHtml(room.lastSeenAt || '')}">${relativeTime(room.lastSeenAt)}</span>
               </div>
             </div>`;
         }).join('');
@@ -1114,13 +1210,15 @@
         const pd    = data.population_data  || {};
         const grid  = pd.occupancy_grid     || {};
         const alert = alertClass(pd.alert_level);
+        const room = this._findRoom(this.selectedRoomId);
+        const deviceId = di.device_id || room?.identifierValue || this.selectedRoomId || '—';
         const detailEl = document.getElementById('roomDetail');
 
         detailEl.innerHTML = `
           <!-- Header -->
           <div class="detail-header">
             <div class="detail-title">
-              <h2>${escHtml(di.device_name || 'Unknown Device')}</h2>
+              <h2>${escHtml(di.device_name || deviceId || 'Unknown Device')}</h2>
               <div class="detail-location">
                 📍 ${escHtml(di.location || 'Unknown Location')}
               </div>
@@ -1138,24 +1236,28 @@
           <!-- Key metrics -->
           <div class="stats-row">
             <div class="stat-card">
-              <div class="stat-value">${pd.current_count ?? 0}</div>
+              <div class="stat-value">${asNumber(pd.current_count) ?? 0}</div>
               <div class="stat-label">People</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value">${pd.fps != null ? pd.fps.toFixed(1) : '—'}</div>
+              <div class="stat-value">${fmtNumber(pd.fps, 1)}</div>
               <div class="stat-label">FPS</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value">${pd.frame_number != null ? pd.frame_number.toLocaleString() : '—'}</div>
+              <div class="stat-value">${asNumber(pd.frame_number) !== null ? asNumber(pd.frame_number).toLocaleString() : '—'}</div>
               <div class="stat-label">Frame</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value">${grid.total_occupants ?? '—'}</div>
+              <div class="stat-value">${asNumber(grid.total_occupants) ?? '—'}</div>
               <div class="stat-label">Grid Total</div>
             </div>
             <div class="stat-card">
-              <div class="stat-value">${grid.average_density != null ? (grid.average_density * 100).toFixed(0) + '%' : '—'}</div>
+              <div class="stat-value">${asNumber(grid.average_density) !== null ? (asNumber(grid.average_density) * 100).toFixed(0) + '%' : '—'}</div>
               <div class="stat-label">Avg Density</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${room?.messageCount != null ? Number(room.messageCount).toLocaleString() : '—'}</div>
+              <div class="stat-label">Messages</div>
             </div>
           </div>
 
@@ -1169,12 +1271,15 @@
           <div class="section">
             <h3>Device Info</h3>
             <div class="info-grid">
-              <div class="info-row"><span class="info-label">Device ID</span><span class="info-value mono">${escHtml(di.device_id || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Device ID</span><span class="info-value mono">${escHtml(deviceId)}</span></div>
               <div class="info-row"><span class="info-label">Device Name</span><span class="info-value">${escHtml(di.device_name || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Room ID</span><span class="info-value mono">${escHtml(room?.roomId || this.selectedRoomId || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Identifier Type</span><span class="info-value">${escHtml(room?.identifierType || '—')}</span></div>
               <div class="info-row"><span class="info-label">MAC Address</span><span class="info-value mono">${escHtml(di.mac_address || '—')}</span></div>
               <div class="info-row"><span class="info-label">IP Address</span><span class="info-value mono">${escHtml(di.ip_address || '—')}</span></div>
               <div class="info-row"><span class="info-label">Camera Source</span><span class="info-value">${escHtml(di.camera_source || '—')}</span></div>
               <div class="info-row"><span class="info-label">Captured At</span><span class="info-value">${data.captured_at ? new Date(data.captured_at).toLocaleTimeString() : '—'}</span></div>
+              <div class="info-row"><span class="info-label">Last Seen</span><span class="info-value" data-ts="${escHtml(room?.lastSeenAt || '')}">${relativeTime(room?.lastSeenAt)}</span></div>
               <div class="info-row"><span class="info-label">Request ID</span><span class="info-value mono" style="font-size:11px;color:var(--text-muted)">${escHtml(data.request_id || '—')}</span></div>
             </div>
           </div>
@@ -1197,10 +1302,12 @@
           for (let c = 0; c < cols; c++) {
             const cell    = cellMap[`${r},${c}`] || { occupant_count: 0, density: 0, alert_level: 'NORMAL' };
             const cls     = alertClass(cell.alert_level);
-            const pct     = (cell.density * 100).toFixed(0);
-            const tip     = `Row ${r} · Col ${c}&#10;Count: ${cell.occupant_count.toFixed(2)}&#10;Density: ${pct}%&#10;Status: ${cell.alert_level}`;
-            const label   = cell.occupant_count > 0.05 ? cell.occupant_count.toFixed(1) : '';
-            gridCells += `<div class="occ-cell ${cls}" style="--intensity:${cell.density.toFixed(3)}" data-tip="${tip}"><span class="cell-count">${label}</span></div>`;
+            const density = asNumber(cell.density) ?? 0;
+            const count = asNumber(cell.occupant_count) ?? 0;
+            const pct     = (density * 100).toFixed(0);
+            const tip     = `Row ${r} · Col ${c}&#10;Count: ${count.toFixed(2)}&#10;Density: ${pct}%&#10;Status: ${escHtml(cell.alert_level || 'UNKNOWN')}`;
+            const label   = count > 0.05 ? count.toFixed(1) : '';
+            gridCells += `<div class="occ-cell ${cls}" style="--intensity:${density.toFixed(3)}" data-tip="${tip}"><span class="cell-count">${label}</span></div>`;
           }
         }
 
@@ -1211,8 +1318,8 @@
               <span class="grid-dims">${rows} × ${cols}</span>
             </h3>
             <div class="grid-meta">
-              <span>Total: <b>${grid.total_occupants}</b> occupants</span>
-              <span>Avg density: <b>${(grid.average_density * 100).toFixed(1)}%</b></span>
+              <span>Total: <b>${asNumber(grid.total_occupants) ?? '—'}</b> occupants</span>
+              <span>Avg density: <b>${asNumber(grid.average_density) !== null ? (asNumber(grid.average_density) * 100).toFixed(1) + '%' : '—'}</b></span>
             </div>
             <div class="occ-grid" style="grid-template-columns: repeat(${cols}, 52px);">
               ${gridCells}
@@ -1233,15 +1340,21 @@
           return `<div class="section"><h3>Tracked Persons <span class="count-badge">0</span></h3><p style="color:var(--text-muted);font-size:13px">No tracked persons in current frame</p></div>`;
         }
 
-        const rows = persons.map(p => `
-          <tr>
-            <td class="mono">#${p.track_id}</td>
-            <td class="${p.confirmed ? 'tag-confirmed' : 'tag-unconfirmed'}">${p.confirmed ? '✓ Confirmed' : '○ Pending'}</td>
-            <td>${(p.confidence * 100).toFixed(0)}%</td>
-            <td>${p.age} frames</td>
-            <td class="mono">${p.world_x != null ? `(${p.world_x.toFixed(1)}, ${p.world_y.toFixed(1)})` : '—'}</td>
-            <td class="mono" style="color:var(--text-muted);font-size:12px">${p.bounding_box ? `${p.bounding_box.x},${p.bounding_box.y} ${p.bounding_box.width}×${p.bounding_box.height}` : '—'}</td>
-          </tr>`).join('');
+        const rows = persons.map(p => {
+          const confidence = asNumber(p.confidence);
+          const worldX = asNumber(p.world_x);
+          const worldY = asNumber(p.world_y);
+          const bbox = p.bounding_box;
+          return `
+            <tr>
+              <td class="mono">#${escHtml(p.track_id ?? '—')}</td>
+              <td class="${p.confirmed ? 'tag-confirmed' : 'tag-unconfirmed'}">${p.confirmed ? '✓ Confirmed' : '○ Pending'}</td>
+              <td>${confidence !== null ? (confidence * 100).toFixed(0) + '%' : '—'}</td>
+              <td>${escHtml(p.age ?? '—')} frames</td>
+              <td class="mono">${worldX !== null && worldY !== null ? `(${worldX.toFixed(1)}, ${worldY.toFixed(1)})` : '—'}</td>
+              <td class="mono" style="color:var(--text-muted);font-size:12px">${bbox ? `${escHtml(bbox.x)},${escHtml(bbox.y)} ${escHtml(bbox.width)}×${escHtml(bbox.height)}` : '—'}</td>
+            </tr>`;
+        }).join('');
 
         return `
           <div class="section">
@@ -1267,9 +1380,21 @@
         text.textContent = connected ? 'Connected' : 'Reconnecting…';
       }
 
-      _updateRoomCount() {
+      _updateHeaderMetrics() {
         const n = this.rooms.length;
+        let people = 0;
+        let critical = 0;
+
+        this.rooms.forEach(room => {
+          const data = this._roomData(room);
+          const pd = data.population_data || {};
+          people += asNumber(pd.current_count) ?? 0;
+          if (alertClass(pd.alert_level) === 'critical') critical += 1;
+        });
+
         document.getElementById('roomCount').textContent = `${n} Active Room${n !== 1 ? 's' : ''}`;
+        document.getElementById('peopleTotal').textContent = people.toLocaleString();
+        document.getElementById('criticalTotal').textContent = critical.toLocaleString();
       }
 
       _refreshTimestamps() {

@@ -138,7 +138,22 @@ class DashboardWebSocketHandler(
 
     private fun buildRoomListMessage(): String =
         objectMapper.writeValueAsString(
-            mapOf("type" to "room_list", "rooms" to roomRegistry.listRooms())
+            mapOf(
+                "type" to "room_list",
+                "rooms" to roomRegistry.listRooms().map { room ->
+                    val latestPayload = roomRegistry.getLatestPayload(room.roomId)
+                        ?.let { rawPayload -> runCatching { objectMapper.readTree(rawPayload) }.getOrNull() }
+                    mapOf(
+                        "roomId" to room.roomId,
+                        "identifierType" to room.identifierType,
+                        "identifierValue" to room.identifierValue,
+                        "createdAt" to room.createdAt,
+                        "lastSeenAt" to room.lastSeenAt,
+                        "messageCount" to room.messageCount,
+                        "latestPayload" to latestPayload,
+                    )
+                },
+            )
         )
 
     private fun buildRoomUpdateMessage(roomId: String, rawPayload: String): String {
