@@ -9,9 +9,15 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 class WebSocketConfig(
     private val rawMonitoringWebSocketHandler: RawMonitoringWebSocketHandler,
+    private val dashboardWebSocketHandler: DashboardWebSocketHandler,
 ) : WebSocketConfigurer {
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
+        // Python monitoring clients send raw JSON payloads here
         registry.addHandler(rawMonitoringWebSocketHandler, "/ws-raw")
+            .setAllowedOrigins("*")
+
+        // Browser dashboard clients subscribe to live room updates here
+        registry.addHandler(dashboardWebSocketHandler, "/ws-dashboard")
             .setAllowedOrigins("*")
     }
 }

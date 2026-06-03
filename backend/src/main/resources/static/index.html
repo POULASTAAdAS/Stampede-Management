@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Stampede Monitor — Live Dashboard</title>
+    <style>
+        /* ── Variables ────────────────────────────────��────────────────────── */
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #1c2128;
+            --border: #30363d;
+            --border2: #21262d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --text-faint: #484f58;
+            --accent: #58a6ff;
+            --accent-dim: #1f3a5c;
+
+            --normal: #3fb950;
+            --normal-bg: #0d2118;
+            --normal-dim: #143d1f;
+            --warning: #d29922;
+            --warning-bg: #2a1d05;
+            --warning-dim: #3d2d08;
+            --critical: #f85149;
+            --critical-bg: #2a0d0c;
+            --critical-dim: #3d1412;
+
+            --radius: 8px;
+            --radius-sm: 5px;
+            --sidebar-w: 320px;
+            --header-h: 56px;
+        }
+
+        /* ── Reset ─────────────────────────────────────────────────────────── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font: inherit;
+        }
+
+        input {
+            outline: none;
+            border: none;
+            background: none;
+            color: inherit;
+            font: inherit;
+        }
+
+        h2, h3 {
+            font-weight: 600;
+        }
+
+        /* ── Scrollbar ──────────────────────────────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-faint);
+        }
+
+        /* ── Layout ─────────────────────────────────────────────────────────── */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────────────────────────────────── */
+        .header {
+            height: var(--header-h);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-brand .logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f85149, #d29922);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .header-brand h1 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .header-brand span {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .room-count {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .conn-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-faint);
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected {
+            background: var(--normal);
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--critical);
+        }
+
+        @keyframes pulse-green {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(63, 185, 80, .5);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(63, 185, 80, 0);
+            }
+        }
+
+        /* ── Body split ──────────────────────────────────────────────────────── */
+        .body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ─────────────────────────────────────────────────────────── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-wrap {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 7px 12px;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent);
+        }
+
+        .search-box svg {
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .search-box input {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-faint);
+        }
+
+        .room-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .no-rooms {
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ── Room Card ────────────────────────────────────────────────────────── */
+        .room-card {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, transform 0.1s;
+            user-select: none;
+        }
+
+        .room-card:hover {
+            border-color: var(--border);
+            background: #1e2430;
+            transform: translateX(2px);
+        }
+
+        .room-card.selected {
+            border-color: var(--accent);
+            background: #101b2e;
+        }
+
+        .card-row1 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .alert-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .alert-dot.normal {
+            background: var(--normal);
+            animation: pulse-green 2.5s ease-in-out infinite;
+        }
+
+        .alert-dot.warning {
+            background: var(--warning);
+            animation: pulse-warn 2s ease-in-out infinite;
+        }
+
+        .alert-dot.critical {
+            background: var(--critical);
+            animation: pulse-crit 1.2s ease-in-out infinite;
+        }
+
+        .alert-dot.unknown {
+            background: var(--text-faint);
+        }
+
+        @keyframes pulse-warn {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(210, 153, 34, .5);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(210, 153, 34, 0);
+            }
+        }
+
+        @keyframes pulse-crit {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(248, 81, 73, .6);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(248, 81, 73, 0);
+            }
+        }
+
+        .card-room-id {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+            font-family: "SF Mono", "Consolas", monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .card-device-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .card-location {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .card-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card-stat {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .card-stat-val {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        /* ── Badges ──────────────────────────────────────────────────────────── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .badge.normal {
+            background: var(--normal-dim);
+            color: var(--normal);
+        }
+
+        .badge.warning {
+            background: var(--warning-dim);
+            color: var(--warning);
+        }
+
+        .badge.critical {
+            background: var(--critical-dim);
+            color: var(--critical);
+            animation: blink-crit 1.5s ease-in-out infinite;
+        }
+
+        .badge.unknown {
+            background: var(--surface2);
+            color: var(--text-muted);
+        }
+
+        @keyframes blink-crit {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .badge.lg {
+            font-size: 13px;
+            padding: 4px 14px;
+        }
+
+        .msg-count {
+            font-size: 11px;
+            color: var(--text-faint);
+        }
+
+        /* ── Main content ─────────────────────────────────────────────────────── */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Empty State ──────────────────────────────────────────────────────── */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 64px;
+            line-height: 1;
+            opacity: 0.5;
+        }
+
+        .empty-state h2 {
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            max-width: 280px;
+        }
+
+        /* ── Room Detail ─────────────────────────────────────────────────────── */
+        .room-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .detail-title h2 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .detail-location {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ── Alert Banner ─────────────────────────────────────────────────────── */
+        .alert-banner {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-banner.warning {
+            background: var(--warning-bg);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-banner.critical {
+            background: var(--critical-bg);
+            border-color: var(--critical);
+            color: var(--critical);
+            animation: blink-crit 2s ease-in-out infinite;
+        }
+
+        /* ── Stats Row ───────────────────────────────────────────────────────── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Section ─────────────────────────────────────────────────────────── */
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+        }
+
+        .section h3 {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Occupancy Grid ──────────────────────────────────────────────────── */
+        .grid-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .grid-dims {
+            font-size: 11px;
+            background: var(--surface2);
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: var(--text-muted);
+        }
+
+        .occ-grid {
+            display: grid;
+            gap: 4px;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .occ-cell {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: default;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: transform 0.15s;
+        }
+
+        .occ-cell:hover {
+            transform: scale(1.12);
+            z-index: 1;
+        }
+
+        /* Background colour is set via JS custom property --intensity (0-1) */
+        .occ-cell.normal {
+            background: color-mix(in srgb, var(--normal-bg) calc((1 - var(--intensity, 0)) * 100%), var(--normal-dim) calc(var(--intensity, 0) * 100%));
+            color: color-mix(in srgb, var(--text-faint) 40%, var(--normal) 60%);
+        }
+
+        .occ-cell.warning {
+            background: color-mix(in srgb, var(--warning-bg) calc((1 - var(--intensity, 0)) * 100%), var(--warning-dim) calc(var(--intensity, 0) * 100%));
+            color: var(--warning);
+        }
+
+        .occ-cell.critical {
+            background: color-mix(in srgb, var(--critical-bg) calc((1 - var(--intensity, 0)) * 100%), var(--critical-dim) calc(var(--intensity, 0) * 100%));
+            color: var(--critical);
+        }
+
+        .cell-count {
+            font-size: 11px;
+        }
+
+        /* Tooltip */
+        .occ-cell::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0d1117;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 11px;
+            font-weight: 400;
+            padding: 6px 10px;
+            border-radius: 6px;
+            white-space: pre;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 100;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .occ-cell:hover::after {
+            opacity: 1;
+        }
+
+        /* Legend */
+        .grid-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        /* ── Persons Table ───────────────────────────────────────────────────── */
+        .persons-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .persons-table th {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .persons-table td {
+            padding: 8px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .persons-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .persons-table tr:hover td {
+            background: var(--surface2);
+        }
+
+        .tag-confirmed {
+            color: var(--normal);
+            font-weight: 600;
+        }
+
+        .tag-unconfirmed {
+            color: var(--text-faint);
+        }
+
+        .mono {
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 12px;
+        }
+
+        /* ── Device Info Grid ────────────────────────────────────────────────── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 13px;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .count-badge {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 1px 7px;
+            border-radius: 20px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        /* ── Loading ─────────────────────────────────────────────────────────── */
+        .loading {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .loading::after {
+            content: '';
+            display: block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 16px auto 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Responsive ──────────────────────────────────────────────────────── */
+        @media (max-width: 700px) {
+            :root {
+                --sidebar-w: 100%;
+            }
+
+            .body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                height: 260px;
+                flex-shrink: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .room-list {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 8px 8px 4px;
+            }
+
+            .room-card {
+                min-width: 200px;
+            }
+
+            .content {
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- ── Header ── -->
+    <header class="header">
+        <div class="header-brand">
+            <div class="logo-icon">🚨</div>
+            <div>
+                <h1>Stampede Monitor</h1>
+                <span>Live Dashboard</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="room-count" id="roomCount">0 Active Rooms</span>
+            <div class="conn-status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connecting…</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Body ── -->
+    <div class="body">
+
+        <!-- ── Sidebar ── -->
+        <aside class="sidebar">
+            <div class="search-wrap">
+                <div class="search-box">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="Search by Device ID or Room…" autocomplete="off"/>
+                </div>
+            </div>
+            <div class="room-list" id="roomList">
+                <div class="no-rooms">Connecting to server…</div>
+            </div>
+        </aside>
+
+        <!-- ── Content ── -->
+        <main class="content" id="contentArea">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📡</div>
+                <h2>No Room Selected</h2>
+                <p>Click on any room in the sidebar to view its live monitoring data.</p>
+            </div>
+            <div class="room-detail" id="roomDetail" style="display:none;"></div>
+        </main>
+
+    </div>
+</div>
+
+<script>
+    /* ══════════════════════════════════════════════════════════════════════════════
+       Stampede Monitor — Dashboard App
+       Connects to /ws-dashboard and renders live room data.
+    ═════════════════════��════════════════════════════════════════════════════════ */
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function relativeTime(isoOrEpoch) {
+      if (!isoOrEpoch) return '—';
+      const t = typeof isoOrEpoch === 'number' ? isoOrEpoch : new Date(isoOrEpoch).getTime();
+      const s = Math.floor((Date.now() - t) / 1000);
+      if (s < 5)    return 'just now';
+      if (s < 60)   return s + 's ago';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+      return Math.floor(s / 86400) + 'd ago';
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function alertClass(level) {
+      if (!level) return 'unknown';
+      return level.toLowerCase();
+    }
+
+    // ── Dashboard class ─────────────────────────────────────────────────────────
+
+    class Dashboard {
+      constructor() {
+        this.ws             = null;
+        this.rooms          = [];          // Room[] from backend
+        this.liveData       = {};          // roomId → latest MonitoringPayload
+        this.selectedRoomId = null;
+        this.reconnectTimer = null;
+        this.renderTimer    = null;        // debounced list re-render
+
+        this._bindUI();
+        this._connect();
+
+        // Refresh relative timestamps every second
+        setInterval(() => this._refreshTimestamps(), 1000);
+      }
+
+      // ── UI Bindings ────────────────────────────────────────────────────────
+
+      _bindUI() {
+        document.getElementById('searchInput').addEventListener('input', e => {
+          this._renderRoomList();
+        });
+
+        // Event delegation for room card clicks
+        document.getElementById('roomList').addEventListener('click', e => {
+          const card = e.target.closest('.room-card');
+          if (card) this._selectRoom(card.dataset.roomId);
+        });
+      }
+
+      // ── WebSocket ──────────────────────────────────────────────────────────
+
+      _connect() {
+        if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        this.ws = new WebSocket(`${proto}//${location.host}/ws-dashboard`);
+
+        this.ws.onopen = () => {
+          this._setStatus(true);
+          // Re-subscribe to previously selected room after reconnect
+          if (this.selectedRoomId) {
+            this.ws.send(JSON.stringify({ action: 'subscribe', roomId: this.selectedRoomId }));
+          }
+        };
+
+        this.ws.onmessage = e => {
+          try { this._handleMessage(JSON.parse(e.data)); }
+          catch (err) { console.error('[WS] parse error', err); }
+        };
+
+        this.ws.onclose = () => {
+          this._setStatus(false);
+          this.reconnectTimer = setTimeout(() => this._connect(), 3000);
+        };
+
+        this.ws.onerror = err => console.error('[WS] error', err);
+      }
+
+      _send(obj) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify(obj));
+        }
+      }
+
+      // ── Message handling ───────────────────────────────────────────────────
+
+      _handleMessage(msg) {
+        switch (msg.type) {
+          case 'room_list':
+            this.rooms = msg.rooms || [];
+            this._renderRoomList();
+            this._updateRoomCount();
+            break;
+
+          case 'room_update':
+            this.liveData[msg.roomId] = msg.data;
+            // If the update is for the open room, refresh the detail panel
+            if (msg.roomId === this.selectedRoomId) {
+              this._renderRoomDetail(msg.data);
+            }
+            // Debounced sidebar refresh (avoids thrash when many rooms update together)
+            if (!this.renderTimer) {
+              this.renderTimer = setTimeout(() => {
+                this._renderRoomList();
+                this.renderTimer = null;
+              }, 150);
+            }
+            break;
+
+          case 'subscribed':
+            console.log('[WS] subscribed to', msg.roomId);
+            break;
+
+          case 'error':
+            console.warn('[WS] server error:', msg.message);
+            break;
+        }
+      }
+
+      // ── Room selection ─────────────────────────────────────────────────────
+
+      _selectRoom(roomId) {
+        if (!roomId) return;
+
+        // Unsubscribe from the old room
+        if (this.selectedRoomId && this.selectedRoomId !== roomId) {
+          this._send({ action: 'unsubscribe', roomId: this.selectedRoomId });
+        }
+
+        this.selectedRoomId = roomId;
+        this._send({ action: 'subscribe', roomId });
+
+        // Highlight selected card
+        document.querySelectorAll('.room-card').forEach(c => {
+          c.classList.toggle('selected', c.dataset.roomId === roomId);
+        });
+
+        // Show detail panel
+        const emptyEl  = document.getElementById('emptyState');
+        const detailEl = document.getElementById('roomDetail');
+        emptyEl.style.display  = 'none';
+        detailEl.style.display = 'flex';
+
+        // Show cached data immediately (or loading spinner)
+        if (this.liveData[roomId]) {
+          this._renderRoomDetail(this.liveData[roomId]);
+        } else {
+          detailEl.innerHTML = '<div class="loading">Waiting for live data…</div>';
+        }
+      }
+
+      // ── Render: Sidebar ────────────────────────────────────────────────────
+
+      _renderRoomList() {
+        const query      = document.getElementById('searchInput').value.trim().toLowerCase();
+        const container  = document.getElementById('roomList');
+
+        const filtered = this.rooms.filter(r => {
+          if (!query) return true;
+          const d = this.liveData[r.roomId];
+          const name = d?.device_info?.device_name || '';
+          const loc  = d?.device_info?.location    || '';
+          return (
+            r.identifierValue.toLowerCase().includes(query) ||
+            r.roomId.toLowerCase().includes(query)          ||
+            name.toLowerCase().includes(query)              ||
+            loc.toLowerCase().includes(query)
+          );
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = `<div class="no-rooms">${query ? `No rooms matching "<b>${escHtml(query)}</b>"` : 'No active rooms yet'}</div>`;
+          return;
+        }
+
+        container.innerHTML = filtered.map(room => {
+          const d     = this.liveData[room.roomId] || {};
+          const pd    = d.population_data || {};
+          const di    = d.device_info     || {};
+          const alert = alertClass(pd.alert_level);
+          const name  = escHtml(di.device_name || room.identifierValue);
+          const loc   = escHtml(di.location || '');
+          const count = pd.current_count !== undefined ? pd.current_count : '—';
+          const fps   = pd.fps    !== undefined ? pd.fps.toFixed(1) : null;
+          const isSel = room.roomId === this.selectedRoomId;
+
+          return `
+            <div class="room-card${isSel ? ' selected' : ''}" data-room-id="${escHtml(room.roomId)}">
+              <div class="card-row1">
+                <span class="alert-dot ${alert}"></span>
+                <span class="card-room-id" title="${escHtml(room.roomId)}">${escHtml(room.roomId)}</span>
+              </div>
+              <div class="card-device-name">${name}</div>
+              ${loc ? `<div class="card-location">📍 ${loc}</div>` : ''}
+              <div class="card-stats">
+                <span class="card-stat"><span class="card-stat-val">👥 ${count}</span> people</span>
+                ${fps ? `<span class="card-stat"><span class="card-stat-val">⚡ ${fps}</span> fps</span>` : ''}
+              </div>
+              <div class="card-footer">
+                <span class="badge ${alert}">${(pd.alert_level || 'UNKNOWN').toUpperCase()}</span>
+                <span class="msg-count" data-ts="${escHtml(room.lastSeenAt || '')}">${relativeTime(room.lastSeenAt)}</span>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // ── Render: Detail Panel ───────────────────────────────────────────────
+
+      _renderRoomDetail(data) {
+        if (!data) return;
+        const di    = data.device_info      || {};
+        const pd    = data.population_data  || {};
+        const grid  = pd.occupancy_grid     || {};
+        const alert = alertClass(pd.alert_level);
+        const detailEl = document.getElementById('roomDetail');
+
+        detailEl.innerHTML = `
+          <!-- Header -->
+          <div class="detail-header">
+            <div class="detail-title">
+              <h2>${escHtml(di.device_name || 'Unknown Device')}</h2>
+              <div class="detail-location">
+                📍 ${escHtml(di.location || 'Unknown Location')}
+              </div>
+            </div>
+            <span class="badge ${alert} lg">${escHtml(pd.alert_level || 'UNKNOWN')}</span>
+          </div>
+
+          <!-- Alert banner (WARNING / CRITICAL only) -->
+          ${alert !== 'normal' ? `
+            <div class="alert-banner ${alert}">
+              ${alert === 'critical' ? '🚨' : '⚠️'}
+              <span>${escHtml(pd.alert_message || pd.alert_level)}</span>
+            </div>` : ''}
+
+          <!-- Key metrics -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-value">${pd.current_count ?? 0}</div>
+              <div class="stat-label">People</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${pd.fps != null ? pd.fps.toFixed(1) : '—'}</div>
+              <div class="stat-label">FPS</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${pd.frame_number != null ? pd.frame_number.toLocaleString() : '—'}</div>
+              <div class="stat-label">Frame</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${grid.total_occupants ?? '—'}</div>
+              <div class="stat-label">Grid Total</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${grid.average_density != null ? (grid.average_density * 100).toFixed(0) + '%' : '—'}</div>
+              <div class="stat-label">Avg Density</div>
+            </div>
+          </div>
+
+          <!-- Occupancy Grid -->
+          ${this._renderOccupancyGrid(grid)}
+
+          <!-- Tracked Persons -->
+          ${this._renderPersonsSection(pd.tracked_persons)}
+
+          <!-- Device Info -->
+          <div class="section">
+            <h3>Device Info</h3>
+            <div class="info-grid">
+              <div class="info-row"><span class="info-label">Device ID</span><span class="info-value mono">${escHtml(di.device_id || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Device Name</span><span class="info-value">${escHtml(di.device_name || '—')}</span></div>
+              <div class="info-row"><span class="info-label">MAC Address</span><span class="info-value mono">${escHtml(di.mac_address || '—')}</span></div>
+              <div class="info-row"><span class="info-label">IP Address</span><span class="info-value mono">${escHtml(di.ip_address || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Camera Source</span><span class="info-value">${escHtml(di.camera_source || '—')}</span></div>
+              <div class="info-row"><span class="info-label">Captured At</span><span class="info-value">${data.captured_at ? new Date(data.captured_at).toLocaleTimeString() : '—'}</span></div>
+              <div class="info-row"><span class="info-label">Request ID</span><span class="info-value mono" style="font-size:11px;color:var(--text-muted)">${escHtml(data.request_id || '—')}</span></div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ── Render: Occupancy Grid ─────────────────────────────────────────────
+
+      _renderOccupancyGrid(grid) {
+        if (!grid || !grid.cells || !grid.rows || !grid.cols) {
+          return `<div class="section"><h3>Occupancy Grid</h3><p style="color:var(--text-muted);font-size:13px">No grid data</p></div>`;
+        }
+
+        const { rows, cols, cells } = grid;
+        const cellMap = {};
+        cells.forEach(c => { cellMap[`${c.row},${c.col}`] = c; });
+
+        let gridCells = '';
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell    = cellMap[`${r},${c}`] || { occupant_count: 0, density: 0, alert_level: 'NORMAL' };
+            const cls     = alertClass(cell.alert_level);
+            const pct     = (cell.density * 100).toFixed(0);
+            const tip     = `Row ${r} · Col ${c}&#10;Count: ${cell.occupant_count.toFixed(2)}&#10;Density: ${pct}%&#10;Status: ${cell.alert_level}`;
+            const label   = cell.occupant_count > 0.05 ? cell.occupant_count.toFixed(1) : '';
+            gridCells += `<div class="occ-cell ${cls}" style="--intensity:${cell.density.toFixed(3)}" data-tip="${tip}"><span class="cell-count">${label}</span></div>`;
+          }
+        }
+
+        return `
+          <div class="section">
+            <h3>
+              Occupancy Grid
+              <span class="grid-dims">${rows} × ${cols}</span>
+            </h3>
+            <div class="grid-meta">
+              <span>Total: <b>${grid.total_occupants}</b> occupants</span>
+              <span>Avg density: <b>${(grid.average_density * 100).toFixed(1)}%</b></span>
+            </div>
+            <div class="occ-grid" style="grid-template-columns: repeat(${cols}, 52px);">
+              ${gridCells}
+            </div>
+            <div class="grid-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--normal-dim);border:1px solid var(--normal)"></div> Normal</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--warning-dim);border:1px solid var(--warning)"></div> Warning</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--critical-dim);border:1px solid var(--critical)"></div> Critical</div>
+            </div>
+          </div>`;
+      }
+
+      // ── Render: Persons ────────────────────────────────────────────────────
+
+      _renderPersonsSection(persons) {
+        const count = persons?.length ?? 0;
+        if (!count) {
+          return `<div class="section"><h3>Tracked Persons <span class="count-badge">0</span></h3><p style="color:var(--text-muted);font-size:13px">No tracked persons in current frame</p></div>`;
+        }
+
+        const rows = persons.map(p => `
+          <tr>
+            <td class="mono">#${p.track_id}</td>
+            <td class="${p.confirmed ? 'tag-confirmed' : 'tag-unconfirmed'}">${p.confirmed ? '✓ Confirmed' : '○ Pending'}</td>
+            <td>${(p.confidence * 100).toFixed(0)}%</td>
+            <td>${p.age} frames</td>
+            <td class="mono">${p.world_x != null ? `(${p.world_x.toFixed(1)}, ${p.world_y.toFixed(1)})` : '—'}</td>
+            <td class="mono" style="color:var(--text-muted);font-size:12px">${p.bounding_box ? `${p.bounding_box.x},${p.bounding_box.y} ${p.bounding_box.width}×${p.bounding_box.height}` : '—'}</td>
+          </tr>`).join('');
+
+        return `
+          <div class="section">
+            <h3>Tracked Persons <span class="count-badge">${count}</span></h3>
+            <table class="persons-table">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Status</th><th>Confidence</th>
+                  <th>Age</th><th>World Pos</th><th>Bounding Box</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      }
+
+      // ── Status & misc ──────────────────────────────────────────────────────
+
+      _setStatus(connected) {
+        const dot  = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+        dot.className  = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+        text.textContent = connected ? 'Connected' : 'Reconnecting…';
+      }
+
+      _updateRoomCount() {
+        const n = this.rooms.length;
+        document.getElementById('roomCount').textContent = `${n} Active Room${n !== 1 ? 's' : ''}`;
+      }
+
+      _refreshTimestamps() {
+        document.querySelectorAll('[data-ts]').forEach(el => {
+          const ts = el.dataset.ts;
+          if (ts) el.textContent = relativeTime(ts);
+        });
+      }
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────────────
+    const dashboard = new Dashboard();
+</script>
+</body>
+</html>

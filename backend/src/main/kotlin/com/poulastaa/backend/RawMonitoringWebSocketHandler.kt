@@ -52,7 +52,7 @@ class RawMonitoringWebSocketHandler(
             return
         }
 
-        val room = roomRegistry.createOrTouchRoom(identifier)
+        val room = roomRegistry.createOrTouchRoom(identifier, rawPayload)
         val requestId = json.textAt("/request_id") ?: "unknown"
         val deviceId = json.textAt("/device_info/device_id") ?: json.textAt("/device_id") ?: "unknown"
         val peopleCount = json.atOrNull("/population_data/current_count")?.asInt()

@@ -3,13 +3,24 @@ package com.poulastaa.backend
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+
+fun interface RoomUpdateListener {
+    fun onRoomUpdate(room: Room, rawPayload: String)
+}
 
 @Service
 class RoomRegistry {
     private val rooms = ConcurrentHashMap<String, Room>()
+    private val latestPayloads = ConcurrentHashMap<String, String>()
+    private val listeners = CopyOnWriteArrayList<RoomUpdateListener>()
 
-    fun createOrTouchRoom(identifier: RoomIdentifier): Room {
-        return rooms.compute(identifier.roomId) { _, existing ->
+    fun addListener(listener: RoomUpdateListener) {
+        listeners.add(listener)
+    }
+
+    fun createOrTouchRoom(identifier: RoomIdentifier, rawPayload: String? = null): Room {
+        val room = rooms.compute(identifier.roomId) { _, existing ->
             existing?.apply {
                 lastSeenAt = Instant.now()
                 messageCount += 1
@@ -20,7 +31,16 @@ class RoomRegistry {
                 messageCount = 1,
             )
         }!!
+
+        if (rawPayload != null) {
+            latestPayloads[identifier.roomId] = rawPayload
+            listeners.forEach { it.onRoomUpdate(room, rawPayload) }
+        }
+
+        return room
     }
+
+    fun getLatestPayload(roomId: String): String? = latestPayloads[roomId]
 
     fun listRooms(): List<Room> = rooms.values.sortedBy { it.roomId }
 }
