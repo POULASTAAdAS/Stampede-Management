@@ -1012,7 +1012,18 @@ class ConfigurationGUI:
             calibration_area_height=to_float(self._get_widget_value('calibration_area_height')),
             auto_calibration=self._get_widget_value('auto_calibration'),
             calibration_point_radius=to_int(self._get_widget_value('calibration_point_radius')),
-            calibration_line_thickness=to_int(self._get_widget_value('calibration_line_thickness'))
+            calibration_line_thickness=to_int(self._get_widget_value('calibration_line_thickness')),
+
+            # Backend streaming
+            websocket_enabled=True,
+            websocket_request_enabled=True,
+            websocket_log_flow=True,
+            websocket_url=self.config.websocket_url,
+            websocket_device_id=self.config.websocket_device_id,
+            websocket_mac_address=self.config.websocket_mac_address,
+            websocket_device_name=self.config.websocket_device_name,
+            websocket_location=self.config.websocket_location,
+            websocket_debounce_seconds=self.config.websocket_debounce_seconds,
         )
 
         return config
@@ -1069,7 +1080,16 @@ class ConfigurationGUI:
                 'calibration_area_height': config.calibration_area_height,
                 'auto_calibration': config.auto_calibration,
                 'calibration_point_radius': config.calibration_point_radius,
-                'calibration_line_thickness': config.calibration_line_thickness
+                'calibration_line_thickness': config.calibration_line_thickness,
+                'websocket_enabled': config.websocket_enabled,
+                'websocket_request_enabled': config.websocket_request_enabled,
+                'websocket_log_flow': config.websocket_log_flow,
+                'websocket_url': config.websocket_url,
+                'websocket_device_id': config.websocket_device_id,
+                'websocket_mac_address': config.websocket_mac_address,
+                'websocket_device_name': config.websocket_device_name,
+                'websocket_location': config.websocket_location,
+                'websocket_debounce_seconds': config.websocket_debounce_seconds
             }
 
             with open(filename, 'w') as f:

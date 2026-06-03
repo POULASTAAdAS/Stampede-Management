@@ -122,8 +122,8 @@ class MonitoringConfig:
     # ==================== WebSocket Sender Settings ====================
     websocket_enabled: bool = True
     """Set to True to build and process WebSocket monitoring payloads."""
-    websocket_request_enabled: bool = False
-    """Set to True to actually open the WebSocket and send requests to the backend."""
+    websocket_request_enabled: bool = True
+    """Set to True to open the WebSocket and send requests to the backend."""
     websocket_log_flow: bool = True
     """Set to True to log the connection flow and debounced payload JSON."""
     websocket_url: str = "ws://localhost:8080/ws-raw"

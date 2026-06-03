@@ -37,5 +37,14 @@
   "calibration_area_height": 4.0,
   "auto_calibration": true,
   "calibration_point_radius": 8,
-  "calibration_line_thickness": 2
+  "calibration_line_thickness": 2,
+  "websocket_enabled": true,
+  "websocket_request_enabled": true,
+  "websocket_log_flow": true,
+  "websocket_url": "ws://localhost:8080/ws-raw",
+  "websocket_device_id": "Poulastaa",
+  "websocket_mac_address": "a5:00:e3:3f:4f:25",
+  "websocket_device_name": "Poulastaa",
+  "websocket_location": "Unknown Location",
+  "websocket_debounce_seconds": 3.0
 }

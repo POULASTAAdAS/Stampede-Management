@@ -101,8 +101,9 @@ def parse_arguments() -> MonitoringConfig:
     # Backend streaming settings
     parser.add_argument("--disable-websocket", action="store_true",
                         help="Disable WebSocket payload flow entirely")
-    parser.add_argument("--enable-websocket-request", action="store_true",
-                        help="Actually connect and send WebSocket requests to the backend")
+    parser.add_argument("--disable-websocket-request", action="store_true",
+                        help="Do not connect/send WebSocket requests to the backend; only log payloads locally")
+    parser.add_argument("--enable-websocket-request", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--disable-websocket-flow-log", action="store_true",
                         help="Disable temporary WebSocket flow/payload logging")
     parser.add_argument("--websocket-url", type=str, default="ws://localhost:8080/ws-raw",
@@ -144,7 +145,7 @@ def parse_arguments() -> MonitoringConfig:
         max_display_width=args.max_display_width,
         max_display_height=args.max_display_height,
         websocket_enabled=not args.disable_websocket,
-        websocket_request_enabled=args.enable_websocket_request,
+        websocket_request_enabled=not args.disable_websocket_request,
         websocket_log_flow=not args.disable_websocket_flow_log,
         websocket_url=args.websocket_url,
         websocket_device_id=args.websocket_device_id,

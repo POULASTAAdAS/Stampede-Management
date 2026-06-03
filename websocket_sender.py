@@ -388,24 +388,25 @@ class WebSocketSender:
 
         data = json.dumps(asdict(payload), default=str)
         if self.log_flow:
-            self._log_payload_flow(payload, data, reason)
+            self._log_payload_flow(payload, reason)
 
         if not self.request_enabled:
             return
 
         if not self._connected or self._ws is None:
             logger.warning(
-                "[WS FLOW] Backend request skipped because connection is not open "
-                f"(request_id={payload.request_id}, frame={payload.population_data.frame_number})."
+                "[WS SKIP] Backend not connected | "
+                f"device={payload.device_info.device_id} "
+                f"request_id={payload.request_id} "
+                f"frame={payload.population_data.frame_number}"
             )
             return
 
         try:
             self._ws.send(data)
             logger.info(
-                f"[WS FLOW] Backend request sent | device={payload.device_info.device_id} "
-                f"mac={payload.device_info.mac_address} "
-                f"count={payload.population_data.current_count} "
+                f"[WS SENT] device={payload.device_info.device_id} "
+                f"people={payload.population_data.current_count} "
                 f"alert={payload.population_data.alert_level} "
                 f"frame={payload.population_data.frame_number} "
                 f"request_id={payload.request_id}"
@@ -418,19 +419,21 @@ class WebSocketSender:
             return
 
         logger.info(
-            "[WS FLOW 1/2] Connection request | "
+            "[WS START] "
             f"request_enabled={self.request_enabled} "
-            f"url={self.url} device_id={self.device_id} "
+            f"device={self.device_id} "
+            f"url={self.url} "
             f"debounce_seconds={self.debounce_seconds}"
         )
 
-    def _log_payload_flow(self, payload: MonitoringPayload, data: str, reason: str):
+    def _log_payload_flow(self, payload: MonitoringPayload, reason: str):
         logger.info(
-            "[WS FLOW 2/2] Debounced payload ready | "
-            f"reason={reason} request_enabled={self.request_enabled} "
-            f"request_id={payload.request_id} "
-            f"frame={payload.population_data.frame_number} "
+            "[WS READY] "
+            f"reason={reason} "
+            f"request_enabled={self.request_enabled} "
+            f"device={payload.device_info.device_id} "
             f"people={payload.population_data.current_count} "
             f"alert={payload.population_data.alert_level} "
-            f"payload={data}"
+            f"frame={payload.population_data.frame_number} "
+            f"request_id={payload.request_id}"
         )

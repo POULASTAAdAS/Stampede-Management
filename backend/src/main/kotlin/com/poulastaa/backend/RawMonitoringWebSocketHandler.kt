@@ -54,13 +54,15 @@ class RawMonitoringWebSocketHandler(
 
         val room = roomRegistry.createOrTouchRoom(identifier)
         val requestId = json.textAt("/request_id") ?: "unknown"
+        val deviceId = json.textAt("/device_info/device_id") ?: json.textAt("/device_id") ?: "unknown"
         val peopleCount = json.atOrNull("/population_data/current_count")?.asInt()
         val alertLevel = json.textAt("/population_data/alert_level") ?: "unknown"
 
         logger.info(
-            "[WS REQUEST] sessionId={} requestId={} roomId={} identifierType={} identifierValue={} people={} alert={} payload={}",
+            "[WS REQUEST] sessionId={} requestId={} deviceId={} roomId={} identifierType={} identifierValue={} people={} alert={} payload={}",
             session.id,
             requestId,
+            deviceId,
             room.roomId,
             room.identifierType,
             room.identifierValue,
