@@ -106,7 +106,7 @@ def parse_arguments() -> MonitoringConfig:
     parser.add_argument("--enable-websocket-request", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--disable-websocket-flow-log", action="store_true",
                         help="Disable temporary WebSocket flow/payload logging")
-    parser.add_argument("--websocket-url", type=str, default="ws://localhost:8080/ws-raw",
+    parser.add_argument("--websocket-url", type=str, default="ws://localhost:8085/ws-raw",
                         help="Backend WebSocket URL")
     parser.add_argument("--websocket-device-id", type=str, default="",
                         help="Device ID sent in WebSocket payloads")

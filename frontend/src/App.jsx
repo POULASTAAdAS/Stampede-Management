@@ -410,6 +410,11 @@ function App() {
     }
   }
 
+  // --- Computed Active Room details ---
+  const activeRoom = useMemo(() => {
+    return rooms.find(r => r.roomId === selectedRoomId) || null
+  }, [rooms, selectedRoomId])
+
   // --- Check selected track position in overcrowded cells and play audio warning ---
   const lastGridAlertTimeRef = useRef(0)
   useEffect(() => {
@@ -486,11 +491,6 @@ function App() {
       }
     }
   }, [activeRoom, selectedTrackId, isAudioMuted, gridRows, gridCols])
-
-  // --- Computed Active Room details ---
-  const activeRoom = useMemo(() => {
-    return rooms.find(r => r.roomId === selectedRoomId) || null
-  }, [rooms, selectedRoomId])
 
   // --- Filtered Rooms (Search) ---
   const filteredRooms = useMemo(() => {
