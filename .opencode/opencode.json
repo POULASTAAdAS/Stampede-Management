@@ -1,0 +1,36 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": {
+    "paths": [
+      ".opencode/skills"
+    ]
+  },
+  "mcp": {
+    "stampede_project_knowledge": {
+      "type": "local",
+      "command": [
+        "./tools/rag/.venv/bin/python",
+        "./tools/rag/mcp_project_knowledge.py"
+      ],
+      "enabled": true,
+      "timeout": 20000,
+      "environment": {
+        "STAMPEDE_RAG_DB": "./tools/rag/data/stampede_project_knowledge.sqlite",
+        "STAMPEDE_RAG_DATA_DIR": "./tools/rag/data",
+        "STAMPEDE_RAG_EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
+        "STAMPEDE_RAG_AUTO_REFRESH": "1",
+        "STAMPEDE_RAG_REFRESH_MIN_INTERVAL_SECONDS": "300"
+      }
+    },
+    "context7": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "enabled": true,
+      "timeout": 20000
+    }
+  }
+}
