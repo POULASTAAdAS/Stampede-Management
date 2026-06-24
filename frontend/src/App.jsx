@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import {
-  AlertTriangle, Grid, Map, Cpu, Clock, Users, Activity, Eye
+  AlertTriangle, Grid, Map, Cpu, Clock, Users
 } from 'lucide-react'
 import './App.css'
 import {
   AppContainer, DashboardBody, SidebarBackdrop, ContentArea,
   DetailHeaderPanel, MetricsRow, MetricCard, MetricIconBox, MetricValue,
-  MetricName, VisualizersGrid, DetailsRow, DashboardPanel
+  MetricName, VisualizersGrid, DetailsRow
 } from './components'
 
 // Modular Components
@@ -15,8 +15,79 @@ import Sidebar from './components/Sidebar'
 import RadarScope from './components/RadarScope'
 import DensityGrid from './components/DensityGrid'
 import TrackedTable from './components/TrackedTable'
-import ConsoleLogs from './components/ConsoleLogs'
-import SettingsPanel from './components/SettingsPanel'
+
+let alertAudioContext = null
+
+function getAlertAudioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext
+  if (!AudioContextClass) return null
+
+  if (!alertAudioContext || alertAudioContext.state === 'closed') {
+    alertAudioContext = new AudioContextClass()
+  }
+
+  const audioCtx = alertAudioContext
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {})
+  }
+
+  return audioCtx
+}
+
+function playCriticalSirenTone() {
+  const audioCtx = getAlertAudioContext()
+  if (!audioCtx) return
+
+  const now = audioCtx.currentTime + 0.02
+  const duration = 1.8
+  const gain = audioCtx.createGain()
+  const highOsc = audioCtx.createOscillator()
+  const lowOsc = audioCtx.createOscillator()
+
+  highOsc.type = 'sawtooth'
+  lowOsc.type = 'square'
+  highOsc.connect(gain)
+  lowOsc.connect(gain)
+  gain.connect(audioCtx.destination)
+  gain.gain.setValueAtTime(0.0001, now)
+
+  for (let i = 0; i < 6; i += 1) {
+    const pulseStart = now + i * 0.28
+    const pulsePeak = pulseStart + 0.05
+    const pulseEnd = pulseStart + 0.22
+
+    highOsc.frequency.setValueAtTime(720, pulseStart)
+    highOsc.frequency.linearRampToValueAtTime(1180, pulseEnd)
+    lowOsc.frequency.setValueAtTime(360, pulseStart)
+    lowOsc.frequency.linearRampToValueAtTime(590, pulseEnd)
+
+    gain.gain.setValueAtTime(0.0001, pulseStart)
+    gain.gain.linearRampToValueAtTime(0.18, pulsePeak)
+    gain.gain.setValueAtTime(0.18, pulseEnd - 0.04)
+    gain.gain.linearRampToValueAtTime(0.0001, pulseEnd)
+  }
+
+  highOsc.start(now)
+  lowOsc.start(now)
+  highOsc.stop(now + duration)
+  lowOsc.stop(now + duration)
+}
+
+function primeAlertAudio() {
+  const audioCtx = getAlertAudioContext()
+  if (!audioCtx) return
+
+  const now = audioCtx.currentTime + 0.01
+  const gain = audioCtx.createGain()
+  const osc = audioCtx.createOscillator()
+
+  gain.gain.setValueAtTime(0.0001, now)
+  osc.frequency.setValueAtTime(440, now)
+  osc.connect(gain)
+  gain.connect(audioCtx.destination)
+  osc.start(now)
+  osc.stop(now + 0.04)
+}
 
 function App() {
   // --- States ---
@@ -25,29 +96,24 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isConnected, setIsConnected] = useState(false)
   const [isRadarSweep, setIsRadarSweep] = useState(true)
-  const [isAudioMuted, setIsAudioMuted] = useState(true) // Start muted to satisfy browser policies
+  const [isAudioMuted, setIsAudioMuted] = useState(true)
+  const [showAudioPermission, setShowAudioPermission] = useState(true)
   const [selectedTrackId, setSelectedTrackId] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [mobileTab, setMobileTab] = useState('telemetry')
   const [isLoading, setIsLoading] = useState(true)
 
-  // Custom limits
-  const [warningThreshold, setWarningThreshold] = useState(0.7) // 70% cell density
-  const [criticalThreshold, setCriticalThreshold] = useState(0.9) // 90% cell density
+  // Fixed density limits
+  const warningThreshold = 0.7 // 70% cell density
+  const criticalThreshold = 0.9 // 90% cell density
   const [gridRows] = useState(5)
   const [gridCols] = useState(5)
 
   // Historical data for Sparklines (RoomId -> List of recent occupancy counts)
   const [history, setHistory] = useState({})
 
-  // System Log Console
-  const [logs, setLogs] = useState([
-    { id: 1, time: new Date().toLocaleTimeString(), msg: "Stampede Management Interface initialized", type: "system" }
-  ])
-
   // Web socket reference
   const wsRef = useRef(null)
-  const consoleLogsRef = useRef(null)
+  const lastRoomAlertAudioRef = useRef({})
 
   // --- Splash Screen Timer ---
   useEffect(() => {
@@ -57,19 +123,10 @@ function App() {
     return () => clearTimeout(timer)
   }, [])
 
-  // --- Auto-scroll console ---
-  useEffect(() => {
-    if (consoleLogsRef.current) {
-      consoleLogsRef.current.scrollTop = consoleLogsRef.current.scrollHeight
-    }
-  }, [logs])
-
   // --- WebSocket Connection ---
   useEffect(() => {
     const configuredWsUrl = import.meta.env.VITE_WS_URL
     const wsUrl = configuredWsUrl || 'wss://stamped.poulastaa.dev/ws-dashboard'
-
-    addLog(`Attempting WebSocket connection to ${wsUrl}...`, "system")
 
     let active = true
     let reconnectTimeout = null
@@ -86,7 +143,6 @@ function App() {
             return
           }
           setIsConnected(true)
-          addLog("WebSocket Gateway Online", "system")
           // Request current room list
           ws.send(JSON.stringify({ action: "list" }))
         }
@@ -105,7 +161,6 @@ function App() {
                 setSelectedRoomId(firstId)
                 // Subscribe to it
                 ws.send(JSON.stringify({ action: "subscribe", roomId: firstId }))
-                addLog(`Auto-subscribed to live device: ${firstId}`, "system")
               }
             }
             else if (message.type === 'room_update') {
@@ -132,17 +187,10 @@ function App() {
                   return { ...prev, [roomId]: updated }
                 })
 
-                // Audio warning trigger
-                if (roomId === selectedRoomId) {
-                  checkAlertLevelAndSpeak(data.population_data.alert_level, roomId)
-                }
               }
             }
-            else if (message.type === 'subscribed') {
-              addLog(`Subscribed to telemetry stream: ${message.roomId}`, "system")
-            }
             else if (message.type === 'error') {
-              addLog(`Gateway Error: ${message.message}`, "error")
+              console.error(`Gateway Error: ${message.message}`)
             }
           } catch (err) {
             console.error("Error parsing WS packet", err)
@@ -152,7 +200,6 @@ function App() {
         ws.onclose = () => {
           setIsConnected(false)
           if (active) {
-            addLog("WebSocket Connection Closed. Reconnecting in 5 seconds...", "error")
             reconnectTimeout = setTimeout(connectWS, 5000)
           }
         }
@@ -193,41 +240,57 @@ function App() {
     setSelectedRoomId(roomId)
     setSelectedTrackId(null)
     setIsSidebarOpen(false)
-    addLog(`Navigated to monitor room: ${roomId}`, "system")
-  }
-
-  // --- Add console logs helper ---
-  const addLog = (msg, type = "info") => {
-    setLogs(prev => [
-      ...prev,
-      { id: Date.now() + Math.random(), time: new Date().toLocaleTimeString(), msg, type }
-    ].slice(-50)) // Cap logs at 50 entries
-  }
-
-  // --- Audio Alert Speech Synthesis ---
-  const lastAlertTimeRef = useRef({})
-  const checkAlertLevelAndSpeak = (level, roomId) => {
-    if (isAudioMuted || (level !== 'WARNING' && level !== 'CRITICAL')) return
-
-    const now = Date.now()
-    const lastTime = lastAlertTimeRef.current[roomId] || 0
-    if (now - lastTime < 10000) return // Debounce speech to once every 10 seconds per room
-
-    lastAlertTimeRef.current[roomId] = now
-    const utterance = new SpeechSynthesisUtterance(
-      level === 'CRITICAL'
-        ? `Alert! Critical crowd density detected in ${roomId.replace('device:', '')}!`
-        : `Warning. High density detected in ${roomId.replace('device:', '')}.`
-    )
-    utterance.rate = 1.0
-    utterance.volume = 1.0
-    window.speechSynthesis.speak(utterance)
   }
 
   // --- Computed Active Room details ---
   const activeRoom = useMemo(() => {
     return rooms.find(r => r.roomId === selectedRoomId) || null
   }, [rooms, selectedRoomId])
+
+  const handleAudioMutedChange = (muted) => {
+    if (!muted) {
+      primeAlertAudio()
+      setShowAudioPermission(false)
+    }
+    setIsAudioMuted(muted)
+  }
+
+  const handleKeepAudioMuted = () => {
+    setIsAudioMuted(true)
+    setShowAudioPermission(false)
+  }
+
+  // --- Critical room siren follows the same state that renders the red alert banner ---
+  useEffect(() => {
+    if (!activeRoom || isAudioMuted) return
+
+    const populationData = activeRoom.latestPayload?.population_data
+    if (populationData?.alert_level !== 'CRITICAL') return
+
+    const now = Date.now()
+    const roomId = activeRoom.roomId
+    const lastTime = lastRoomAlertAudioRef.current[roomId] || 0
+    if (now - lastTime < 10000) return
+
+    lastRoomAlertAudioRef.current[roomId] = now
+
+    try {
+      playCriticalSirenTone()
+    } catch (err) {
+      console.warn("Critical siren failed", err)
+    }
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(
+        `Critical alert. Crowd density limit reached in ${roomId.replace('device:', '')}.`
+      )
+      utterance.rate = 1.05
+      utterance.volume = 1.0
+      window.speechSynthesis.speak(utterance)
+    } catch (err) {
+      console.warn("Critical voice alert failed", err)
+    }
+  }, [activeRoom, isAudioMuted])
 
   // --- Check selected track position in overcrowded cells and play audio warning ---
   const lastGridAlertTimeRef = useRef(0)
@@ -301,19 +364,35 @@ function App() {
           console.warn("SpeechSynthesis failed", err);
         }
         
-        addLog(`WARNING: Selected user #${selectedTrackId} is in overcrowded cell [${r}, ${c}]`, "warn")
       }
     }
   }, [activeRoom, selectedTrackId, isAudioMuted, gridRows, gridCols])
 
   // --- Filtered Rooms (Search) ---
   const filteredRooms = useMemo(() => {
-    if (!searchQuery) return rooms
-    return rooms.filter(r =>
-      r.roomId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.latestPayload?.device_info?.device_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (r.latestPayload?.device_info?.location || '').toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const terms = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    if (terms.length === 0) return rooms
+
+    return rooms.filter(room => {
+      const payload = room.latestPayload
+      const deviceInfo = payload?.device_info || {}
+      const populationData = payload?.population_data || {}
+      const displayName = room.roomId.replace(/^device:/i, '')
+      const searchableText = [
+        room.roomId,
+        displayName,
+        deviceInfo.device_id,
+        deviceInfo.device_name,
+        deviceInfo.location,
+        deviceInfo.camera_source,
+        populationData.alert_level,
+        populationData.alert_message,
+        populationData.current_count,
+        `${populationData.current_count ?? ''} occupants`,
+      ].filter(value => value !== undefined && value !== null).join(' ').toLowerCase()
+
+      return terms.every(term => searchableText.includes(term))
+    })
   }, [rooms, searchQuery])
 
   // --- Render Live Population Sparkline ---
@@ -356,10 +435,9 @@ function App() {
       <Header
         isConnected={isConnected}
         isAudioMuted={isAudioMuted}
-        setIsAudioMuted={setIsAudioMuted}
+        setIsAudioMuted={handleAudioMutedChange}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
-        addLog={addLog}
       />
 
       {/* --- Main Dashboard Body --- */}
@@ -371,6 +449,7 @@ function App() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           filteredRooms={filteredRooms}
+          totalRooms={rooms.length}
           selectedRoomId={selectedRoomId}
           handleSelectRoom={handleSelectRoom}
           history={history}
@@ -395,7 +474,7 @@ function App() {
                   <h2>{activeRoom.roomId.replace('device:', '').toUpperCase()}</h2>
                   <p>
                     <Clock size={14} />
-                    <span>Live Tracking • Cam Src: <code>{activeRoom.latestPayload?.device_info?.camera_source || '0'}</code> • Refresh: 29fps</span>
+                    <span>Live tracking • Camera <code>{activeRoom.latestPayload?.device_info?.camera_source || '0'}</code> • Refresh 29fps</span>
                   </p>
                 </div>
 
@@ -415,7 +494,7 @@ function App() {
                   </MetricIconBox>
                   <div className="metric-content">
                     <MetricValue>{activeRoom.latestPayload?.population_data?.current_count || 0}</MetricValue>
-                    <MetricName>TOTAL CROWD COUNT</MetricName>
+                    <MetricName>Total Occupancy</MetricName>
                   </div>
                   <div className="metric-sparkline">
                     {renderSparkline(history[activeRoom.roomId])}
@@ -430,7 +509,7 @@ function App() {
                     <MetricValue>
                       {Math.round((activeRoom.latestPayload?.population_data?.occupancy_grid?.average_density || 0) * 100)}%
                     </MetricValue>
-                    <MetricName>AVG GRID DENSITY</MetricName>
+                    <MetricName>Average Density</MetricName>
                   </div>
                 </MetricCard>
 
@@ -440,7 +519,7 @@ function App() {
                   </MetricIconBox>
                   <div className="metric-content">
                     <MetricValue>{activeRoom.latestPayload?.population_data?.alert_level || 'NORMAL'}</MetricValue>
-                    <MetricName>ROOM RISK INDEX</MetricName>
+                    <MetricName>Room Risk</MetricName>
                   </div>
                 </MetricCard>
 
@@ -450,7 +529,7 @@ function App() {
                   </MetricIconBox>
                   <div className="metric-content">
                     <MetricValue>{activeRoom.latestPayload?.population_data?.fps || '30.0'} Hz</MetricValue>
-                    <MetricName>PROCESSOR SPEED</MetricName>
+                    <MetricName>Processing Rate</MetricName>
                   </div>
                 </MetricCard>
               </MetricsRow>
@@ -476,7 +555,7 @@ function App() {
                 />
               </VisualizersGrid>
 
-              {/* Bottom Row - Data Table & Logs */}
+              {/* Bottom Row - Data Table */}
               <DetailsRow>
                 {/* Table: Tracked Persons List */}
                 <TrackedTable
@@ -484,17 +563,6 @@ function App() {
                   selectedTrackId={selectedTrackId}
                   setSelectedTrackId={setSelectedTrackId}
                 />
-
-                {/* Panel: System Logs & Settings */}
-                <DashboardPanel>
-                  <ConsoleLogs logs={logs} consoleLogsRef={consoleLogsRef} />
-                  <SettingsPanel
-                    warningThreshold={warningThreshold}
-                    setWarningThreshold={setWarningThreshold}
-                    criticalThreshold={criticalThreshold}
-                    setCriticalThreshold={setCriticalThreshold}
-                  />
-                </DashboardPanel>
               </DetailsRow>
             </>
           )}
@@ -513,6 +581,30 @@ function App() {
           <p className="splash-status">ESTABLISHING CRYPTO GATEWAY LINK...</p>
         </div>
       </div>
+
+      {showAudioPermission && !isLoading && (
+        <div className="audio-permission-overlay" role="dialog" aria-modal="true" aria-labelledby="audio-permission-title">
+          <div className="audio-permission-card">
+            <div className="audio-permission-icon">
+              <AlertTriangle size={22} />
+            </div>
+            <div className="audio-permission-copy">
+              <h2 id="audio-permission-title">Enable Critical Siren Audio?</h2>
+              <p>
+                Critical crowd-density alerts need browser audio access. Enable siren audio now so red-limit warnings can play immediately.
+              </p>
+            </div>
+            <div className="audio-permission-actions">
+              <button className="audio-permission-primary" type="button" onClick={() => handleAudioMutedChange(false)}>
+                Enable Siren Audio
+              </button>
+              <button className="audio-permission-secondary" type="button" onClick={handleKeepAudioMuted}>
+                Keep Muted
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppContainer>
   )
 }

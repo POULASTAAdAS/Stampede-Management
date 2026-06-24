@@ -11,7 +11,7 @@ import numpy as np
 from config import MonitoringConfig
 from geometry import GeometryProcessor
 from logger_config import get_logger
-from window_utils import create_visible_window, wait_key
+from window_utils import create_visible_window, normalize_key, pump_gui_events, wait_key
 
 logger = get_logger(__name__)
 
@@ -146,6 +146,8 @@ class CameraCalibrator:
             window_name = "Calibration - Click 4 corners (Full Frame View)"
             initial_preview, _ = resize_frame_for_display(frame, max_width, max_height)
             create_visible_window(window_name, initial_preview.shape[1], initial_preview.shape[0])
+            cv2.imshow(window_name, initial_preview)
+            pump_gui_events(5, 30)
             cv2.setMouseCallback(window_name, click_callback)
 
             logger.info("Click 4 ground reference points in clockwise order")
@@ -207,7 +209,7 @@ class CameraCalibrator:
                     pass
 
                 cv2.imshow(window_name, display_frame_resized)
-                key = wait_key(1) & 0xFF
+                key = normalize_key(wait_key(30))
 
                 if key == ord('c') and len(clicked_points) >= 4:
                     break

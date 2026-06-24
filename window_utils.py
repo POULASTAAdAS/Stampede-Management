@@ -16,15 +16,23 @@ IS_MACOS = platform.system() == "Darwin"
 
 def pump_gui_events(iterations: int = 3, delay_ms: int = 1) -> None:
     """Give OpenCV's GUI backend a chance to create and repaint windows."""
-    wait_ms = max(delay_ms, 10) if IS_MACOS else delay_ms
+    wait_ms = max(delay_ms, 30) if IS_MACOS else delay_ms
     for _ in range(iterations):
-        cv2.waitKey(wait_ms)
+        wait_key(wait_ms)
 
 
 def wait_key(delay_ms: int = 1) -> int:
     """Wait for a keypress while allowing Cocoa windows to repaint reliably."""
-    wait_ms = max(delay_ms, 10) if IS_MACOS else delay_ms
-    return cv2.waitKey(wait_ms)
+    wait_ms = max(delay_ms, 30) if IS_MACOS else delay_ms
+    wait_key_fn = getattr(cv2, "waitKeyEx", cv2.waitKey)
+    return wait_key_fn(wait_ms)
+
+
+def normalize_key(key: int) -> int:
+    """Normalize OpenCV key codes to ASCII values used by monitor shortcuts."""
+    if key < 0:
+        return -1
+    return key & 0xFF
 
 
 def create_visible_window(

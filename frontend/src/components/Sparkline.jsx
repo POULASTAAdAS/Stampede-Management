@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function Sparkline({ data }) {
   if (!data || data.length < 2) return null
 

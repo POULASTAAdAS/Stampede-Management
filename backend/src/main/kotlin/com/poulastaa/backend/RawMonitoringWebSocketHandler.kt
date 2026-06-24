@@ -2,6 +2,7 @@ package com.poulastaa.backend
 
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus
@@ -39,9 +40,12 @@ class RawMonitoringWebSocketHandler(
                 return
             }
 
-        val identifier = extractRoomIdentifier(json)
+        val normalizedJson = normalizeMonitoringPayload(json)
+        val normalizedPayload = objectMapper.writeValueAsString(normalizedJson)
+
+        val identifier = extractRoomIdentifier(normalizedJson)
         if (identifier == null) {
-            val requestId = json.textAt("/request_id") ?: "unknown"
+            val requestId = normalizedJson.textAt("/request_id") ?: "unknown"
             logger.warn(
                 "[WS REQUEST REJECTED] sessionId={} requestId={} reason=missing_device_id_or_mac payload={}",
                 session.id,
@@ -52,11 +56,11 @@ class RawMonitoringWebSocketHandler(
             return
         }
 
-        val room = roomRegistry.createOrTouchRoom(identifier, rawPayload)
-        val requestId = json.textAt("/request_id") ?: "unknown"
-        val deviceId = json.textAt("/device_info/device_id") ?: json.textAt("/device_id") ?: "unknown"
-        val peopleCount = json.atOrNull("/population_data/current_count")?.asInt()
-        val alertLevel = json.textAt("/population_data/alert_level") ?: "unknown"
+        val room = roomRegistry.createOrTouchRoom(identifier, normalizedPayload)
+        val requestId = normalizedJson.textAt("/request_id") ?: "unknown"
+        val deviceId = normalizedJson.textAt("/device_info/device_id") ?: normalizedJson.textAt("/device_id") ?: "unknown"
+        val peopleCount = normalizedJson.atOrNull("/population_data/current_count")?.asInt()
+        val alertLevel = normalizedJson.textAt("/population_data/alert_level") ?: "unknown"
 
         logger.info(
             "[WS REQUEST] sessionId={} requestId={} deviceId={} roomId={} identifierType={} identifierValue={} people={} alert={} payload={}",
@@ -100,6 +104,45 @@ class RawMonitoringWebSocketHandler(
             exception.message,
             exception,
         )
+    }
+
+    internal fun normalizeMonitoringPayload(json: JsonNode): JsonNode {
+        val population = json.atOrNull("/population_data") as? ObjectNode ?: return json
+        val cells = json.atOrNull("/population_data/occupancy_grid/cells")?.takeIf { it.isArray } ?: return json
+
+        var gridAlert = "NORMAL"
+        for (cell in cells) {
+            val cellObject = cell as? ObjectNode ?: continue
+            val currentAlert = cell.textAt("/alert_level")?.uppercase() ?: "NORMAL"
+            val density = cell.atOrNull("/density")?.asDouble()
+            val normalizedAlert = when {
+                currentAlert == "CRITICAL" && density != null && density < 1.0 -> {
+                    if (density >= 0.8) "WARNING" else "NORMAL"
+                }
+                currentAlert == "CRITICAL" -> "CRITICAL"
+                currentAlert == "WARNING" -> "WARNING"
+                else -> "NORMAL"
+            }
+
+            if (normalizedAlert != currentAlert) {
+                cellObject.put("alert_level", normalizedAlert)
+            }
+
+            if (normalizedAlert == "CRITICAL") {
+                gridAlert = "CRITICAL"
+            } else if (normalizedAlert == "WARNING" && gridAlert != "CRITICAL") {
+                gridAlert = "WARNING"
+            }
+        }
+
+        population.put("alert_level", gridAlert)
+        when (gridAlert) {
+            "CRITICAL" -> population.put("alert_message", "CRITICAL: Overcapacity detected in one or more grid cells.")
+            "WARNING" -> population.put("alert_message", "WARNING: Crowd density approaching capacity in one or more grid cells.")
+            else -> population.putNull("alert_message")
+        }
+
+        return json
     }
 
     private fun extractRoomIdentifier(json: JsonNode): RoomIdentifier? {

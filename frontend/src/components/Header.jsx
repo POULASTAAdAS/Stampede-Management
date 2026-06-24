@@ -1,5 +1,4 @@
-import React from 'react'
-import { ShieldAlert, Menu, VolumeX, Volume2 } from 'lucide-react'
+import { Menu, VolumeX, Volume2 } from 'lucide-react'
 import {
   Header as HeaderWrapper, BrandSection, SidebarToggle, BrandLogo, BrandText,
   HeaderControls, SystemStatus, StatusIndicator, StatusLabel, IconOnlyBtn
@@ -10,8 +9,7 @@ export default function Header({
   isAudioMuted,
   setIsAudioMuted,
   isSidebarOpen,
-  setIsSidebarOpen,
-  addLog
+  setIsSidebarOpen
 }) {
   return (
     <HeaderWrapper>
@@ -22,12 +20,12 @@ export default function Header({
         >
           <Menu size={16} />
         </SidebarToggle>
-        <BrandLogo style={{ fontSize: '15px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#fff' }}>
+        <BrandLogo style={{ fontSize: '15px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#fff', letterSpacing: '-0.5px' }}>
           S
         </BrandLogo>
         <BrandText>
           <h1>STAMPEDE MANAGEMENT SYSTEM</h1>
-          <span>SPATIAL DENSITY telemetry gateway</span>
+          <span>LIVE CROWD INTELLIGENCE</span>
         </BrandText>
       </BrandSection>
 
@@ -35,7 +33,7 @@ export default function Header({
         <SystemStatus>
           <StatusIndicator state={isConnected ? 'online' : 'offline'} />
           <StatusLabel>
-            GATEWAY: <strong>{isConnected ? 'ONLINE' : 'OFFLINE'}</strong>
+            Gateway <strong>{isConnected ? 'Online' : 'Offline'}</strong>
           </StatusLabel>
         </SystemStatus>
 
@@ -43,7 +41,6 @@ export default function Header({
           active={!isAudioMuted}
           onClick={() => {
             setIsAudioMuted(!isAudioMuted)
-            addLog(!isAudioMuted ? "Audio alerts enabled" : "Audio warnings muted", "system")
           }}
           title={isAudioMuted ? "Unmute Voice Alerter" : "Mute Voice Alerter"}
         >

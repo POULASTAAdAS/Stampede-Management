@@ -1,4 +1,3 @@
-import React from 'react'
 import { Grid } from 'lucide-react'
 import { DashboardPanel, GridWrapper, GridCellBox } from '../components'
 
@@ -16,7 +15,7 @@ export default function DensityGrid({
       <div className="panel-header">
         <div className="panel-title">
           <Grid size={14} />
-          <span>Occupancy Density Grid Heatmap</span>
+          <span>Occupancy Density Grid</span>
         </div>
       </div>
 
@@ -25,7 +24,7 @@ export default function DensityGrid({
           style={{
             gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
             width: '100%',
-            maxWidth: `${gridCols * 48}px`,
+            maxWidth: `min(100%, ${gridCols * 70}px)`,
             aspectRatio: `${gridCols} / ${gridRows}`
           }}
         >

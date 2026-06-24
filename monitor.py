@@ -3,6 +3,7 @@ Main crowd monitoring system.
 Orchestrates all components for real-time monitoring.
 """
 
+import platform
 import time
 from typing import List, Optional, Tuple, Union
 
@@ -10,16 +11,29 @@ import cv2
 import numpy as np
 
 from calibration import CameraCalibrator
-from config import MonitoringConfig, TrackData
+from config import DEFAULT_WEBSOCKET_DEVICE_ID, MonitoringConfig, TrackData
 from detector import PersonDetector
 from logger_config import get_logger
 from occupancy import OccupancyGrid
 from trackers import DeepSortTracker, SimpleCentroidTracker
 from visualizer import MonitorVisualizer
 from websocket_sender import WebSocketSender, build_payload
-from window_utils import create_visible_window, set_window_title, wait_key
+from window_utils import create_visible_window, normalize_key, set_window_title, wait_key
 
 logger = get_logger(__name__)
+IS_MACOS = platform.system() == "Darwin"
+
+
+def open_video_capture(source) -> cv2.VideoCapture:
+    """Open camera sources with the native macOS backend when available."""
+    avfoundation = getattr(cv2, "CAP_AVFOUNDATION", None)
+    if isinstance(source, int) and IS_MACOS and avfoundation is not None:
+        cap = cv2.VideoCapture(source, avfoundation)
+        if cap.isOpened():
+            return cap
+        cap.release()
+
+    return cv2.VideoCapture(source)
 
 
 def get_screen_size() -> Tuple[int, int]:
@@ -29,8 +43,6 @@ def get_screen_size() -> Tuple[int, int]:
     Returns:
         Tuple of (width, height) in pixels. Returns (1920, 1080) if detection fails.
     """
-    import platform
-
     if platform.system() == "Darwin":
         try:
             from AppKit import NSScreen
@@ -203,10 +215,10 @@ class CrowdMonitor:
             self.camera_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             logger.info(f"Camera resolution: {self.camera_width}x{self.camera_height}")
 
-            # Perform calibration
-            ret, frame = cap.read()
-            if not ret:
-                logger.error("Cannot read from video source")
+            # Perform calibration after the camera has produced a usable frame.
+            frame = self._read_calibration_frame(cap)
+            if frame is None:
+                logger.error("Cannot read a usable calibration frame from video source")
                 cap.release()
                 return False
 
@@ -231,7 +243,7 @@ class CrowdMonitor:
 
             # Start WebSocket sender if enabled
             if self.config.websocket_enabled:
-                device_id = self.config.websocket_device_id or __import__('socket').gethostname()
+                device_id = self.config.websocket_device_id or DEFAULT_WEBSOCKET_DEVICE_ID
                 self.ws_sender = WebSocketSender(
                     url=self.config.websocket_url,
                     device_id=device_id,
@@ -261,6 +273,35 @@ class CrowdMonitor:
             logger.error(f"Initialization failed: {e}")
             return False
 
+    def _read_calibration_frame(self, cap: cv2.VideoCapture) -> Optional[np.ndarray]:
+        """Read a non-black frame for calibration, allowing webcams to warm up."""
+        source = self.config.source
+        is_camera = isinstance(source, int) or (isinstance(source, str) and source.isdigit())
+        attempts = 30 if is_camera else 1
+        last_frame = None
+
+        for attempt in range(attempts):
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                if is_camera:
+                    time.sleep(0.03)
+                continue
+
+            last_frame = frame
+            brightness = float(np.mean(frame))
+            contrast = float(np.std(frame))
+            if brightness > 5.0 and contrast > 2.0:
+                if attempt > 0:
+                    logger.info(f"Camera warmed up after {attempt + 1} frame(s)")
+                return frame
+
+            if is_camera:
+                time.sleep(0.03)
+
+        if last_frame is not None:
+            logger.warning("Using a very dark calibration frame after camera warm-up attempts")
+        return last_frame
+
     @staticmethod
     def detect_available_cameras(max_cameras: int = 10, timeout: float = 1.0) -> List[dict]:
         """
@@ -278,7 +319,7 @@ class CrowdMonitor:
 
         for index in range(max_cameras):
             try:
-                cap = cv2.VideoCapture(index)
+                cap = open_video_capture(index)
                 if cap.isOpened():
                     # Try to read a frame to verify camera is actually working
                     ret, frame = cap.read()
@@ -323,7 +364,7 @@ class CrowdMonitor:
                 # Otherwise it's a file path, keep as string
 
             logger.info(f"Initializing video source: {source}")
-            cap = cv2.VideoCapture(source)
+            cap = open_video_capture(source)
 
             if cap.isOpened():
                 # For camera sources, set properties
@@ -474,7 +515,9 @@ class CrowdMonitor:
                 cv2.imshow(self.window_name, display_frame)
 
                 # Handle user input
-                key = wait_key(1) & 0xFF
+                key = normalize_key(wait_key(30))
+                if key != -1:
+                    logger.info(f"OpenCV key received: {chr(key) if 32 <= key <= 126 else key}")
 
                 if key == ord('q'):
                     logger.info("User requested quit")
@@ -679,6 +722,7 @@ class CrowdMonitor:
         self.config.cell_width = new_width
         self.config.cell_height = new_height
         self.occupancy_grid.reinitialize(self.calibrator.world_width, self.calibrator.world_height)
+        logger.info(f"Grid size changed to {new_width:.2f}m x {new_height:.2f}m")
 
     def _reset_grid_size(self):
         """Reset grid to original size"""

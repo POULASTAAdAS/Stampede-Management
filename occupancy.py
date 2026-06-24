@@ -4,7 +4,14 @@ Handles grid-based crowd density monitoring and alerts.
 """
 
 import math
+import os
+import struct
+import subprocess
+import sys
+import tempfile
+import threading
 import time
+import wave
 from typing import List, Optional
 
 import numpy as np
@@ -49,6 +56,7 @@ class OccupancyGrid:
         self.ema_counts = np.zeros((self.grid_rows, self.grid_cols), dtype=np.float32)
         self.timers = np.zeros((self.grid_rows, self.grid_cols), dtype=np.float32)
         self.notified = np.zeros((self.grid_rows, self.grid_cols), dtype=bool)
+        self._audio_alert_running = False
 
         logger.info(f"Grid initialized: {self.grid_rows}x{self.grid_cols} cells, "
                     f"capacity: {self.cell_capacity} per cell")
@@ -105,6 +113,7 @@ class OccupancyGrid:
         Args:
             dt: Time delta since last update
         """
+        should_play_audio_alert = False
         for row in range(self.grid_rows):
             for col in range(self.grid_cols):
                 if self.ema_counts[row, col] > self.cell_capacity:
@@ -121,11 +130,67 @@ class OccupancyGrid:
                         f"at {timestamp}"
                     )
                     self.notified[row, col] = True
+                    should_play_audio_alert = True
 
                 if (self.notified[row, col] and
                         self.ema_counts[row, col] <= max(0, self.cell_capacity - self.config.alert_clear_offset)):
                     logger.info(f"Alert cleared for cell ({row},{col})")
                     self.notified[row, col] = False
+
+        if should_play_audio_alert:
+            self._play_audio_alert()
+
+    def _play_audio_alert(self):
+        """Play a siren, then announce the crowd density warning."""
+        if self._audio_alert_running:
+            return
+
+        self._audio_alert_running = True
+
+        def run_alert():
+            try:
+                if sys.platform == "darwin":
+                    siren_path = self._create_siren_wav()
+                    try:
+                        subprocess.run(["afplay", siren_path], check=False)
+                    finally:
+                        try:
+                            os.unlink(siren_path)
+                        except OSError:
+                            pass
+                    subprocess.run(["say", "crowd density reached"], check=False)
+                else:
+                    print("\a", end="", flush=True)
+                    logger.warning("crowd density reached")
+            except Exception as exc:
+                logger.warning(f"Audio alert failed: {exc}")
+            finally:
+                self._audio_alert_running = False
+
+        threading.Thread(target=run_alert, daemon=True).start()
+
+    @staticmethod
+    def _create_siren_wav() -> str:
+        sample_rate = 44100
+        duration_seconds = 1.6
+        amplitude = 16000
+        frame_count = int(sample_rate * duration_seconds)
+
+        fd, path = tempfile.mkstemp(prefix="stampede-siren-", suffix=".wav")
+        os.close(fd)
+
+        with wave.open(path, "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            for index in range(frame_count):
+                time_seconds = index / sample_rate
+                sweep = (math.sin(2 * math.pi * 1.4 * time_seconds) + 1) / 2
+                frequency = 650 + (520 * sweep)
+                sample = int(amplitude * math.sin(2 * math.pi * frequency * time_seconds))
+                wav_file.writeframes(struct.pack("<h", sample))
+
+        return path
 
     def get_cell_for_track(self, track: TrackData) -> Optional[tuple]:
         """

@@ -1,4 +1,3 @@
-import React from 'react'
 import { Video, Users } from 'lucide-react'
 import { RoomCard as Card } from '../components'
 import Sparkline from './Sparkline'

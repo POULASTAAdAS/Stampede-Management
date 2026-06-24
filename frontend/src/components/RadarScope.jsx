@@ -1,4 +1,3 @@
-import React from 'react'
 import { Map, RefreshCw } from 'lucide-react'
 import { DashboardPanel, RadarContainerOuter, RadarSweepBeam, IconOnlyBtn } from '../components'
 
@@ -17,7 +16,7 @@ export default function RadarScope({
       <div className="panel-header">
         <div className="panel-title">
           <Map size={14} />
-          <span>Live Radar Positioning Scope (Bird's Eye)</span>
+          <span>Live Positioning Map</span>
         </div>
         <div className="panel-actions">
           <IconOnlyBtn
@@ -87,22 +86,22 @@ export default function RadarScope({
         {selectedPerson && (
           <div className="radar-hud-overlay">
             <div className="hud-header">
-              <span className="hud-tag">TARGET TRACK #{selectedPerson.track_id}</span>
+              <span className="hud-tag">Track #{selectedPerson.track_id}</span>
               <span className={`hud-status ${selectedPerson.confirmed ? 'confirmed' : 'pending'}`}>
-                {selectedPerson.confirmed ? 'CONFIRMED VEC' : 'PENDING VEC'}
+                {selectedPerson.confirmed ? 'Confirmed' : 'Pending'}
               </span>
             </div>
             <div className="hud-grid">
               <div className="hud-item">
-                <span className="hud-label">CONFIDENCE</span>
+                <span className="hud-label">Confidence</span>
                 <span className="hud-val">{Math.round(selectedPerson.confidence * 100)}%</span>
               </div>
               <div className="hud-item">
-                <span className="hud-label">PERSISTENCE AGE</span>
+                <span className="hud-label">Persistence</span>
                 <span className="hud-val">{selectedPerson.age} frames</span>
               </div>
               <div className="hud-item">
-                <span className="hud-label">COORDINATES</span>
+                <span className="hud-label">Coordinates</span>
                 <span className="hud-val">[{Math.round(selectedPerson.world_x)}, {Math.round(selectedPerson.world_y)}]</span>
               </div>
             </div>

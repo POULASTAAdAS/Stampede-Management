@@ -6,6 +6,9 @@ Contains all configuration classes and data structures.
 from dataclasses import dataclass
 from typing import Tuple, Union
 
+DEFAULT_WEBSOCKET_DEVICE_ID = "7f6d29b4-2a1f-4c7a-9f58-7a4d7e0f2c31"
+DEFAULT_WEBSOCKET_DEVICE_NAME = f"Poulastaa ({DEFAULT_WEBSOCKET_DEVICE_ID})"
+
 
 @dataclass
 class MonitoringConfig:
@@ -126,14 +129,14 @@ class MonitoringConfig:
     """Set to True to open the WebSocket and send requests to the backend."""
     websocket_log_flow: bool = True
     """Set to True to log the connection flow and debounced payload JSON."""
-    websocket_url: str = "ws://localhost:8085/ws-raw"
-    """Raw WebSocket endpoint on the Spring Boot backend."""
-    websocket_device_id: str = ""
-    """Unique identifier for this device/camera. Defaults to hostname if empty."""
+    websocket_url: str = "wss://stamped.poulastaa.dev/ws-raw"
+    """Public raw WebSocket endpoint on the Spring Boot backend."""
+    websocket_device_id: str = DEFAULT_WEBSOCKET_DEVICE_ID
+    """Unique static identifier for this device/camera."""
     websocket_mac_address: str = ""
     """MAC address sent to the backend. Defaults to the local machine MAC if empty."""
-    websocket_device_name: str = ""
-    """Human-readable name shown in the dashboard. Defaults to device_id if empty."""
+    websocket_device_name: str = DEFAULT_WEBSOCKET_DEVICE_NAME
+    """Human-readable name shown in the dashboard."""
     websocket_location: str = "Unknown Location"
     """Physical location label, e.g. 'Gate A – North Entrance'."""
     websocket_debounce_seconds: float = 3.0

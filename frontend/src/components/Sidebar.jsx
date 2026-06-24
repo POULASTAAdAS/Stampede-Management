@@ -1,4 +1,3 @@
-import React from 'react'
 import { Search, ArrowLeft } from 'lucide-react'
 import {
   Sidebar as SidebarWrapper, SidebarSearchWrap, SearchContainer, SidebarTitle, RoomsList
@@ -10,6 +9,7 @@ export default function Sidebar({
   searchQuery,
   setSearchQuery,
   filteredRooms,
+  totalRooms,
   selectedRoomId,
   handleSelectRoom,
   history,
@@ -36,11 +36,17 @@ export default function Sidebar({
         </SearchContainer>
       </SidebarSearchWrap>
 
-      <SidebarTitle>Monitoring Rooms ({filteredRooms.length})</SidebarTitle>
+      <SidebarTitle>
+        Monitoring Rooms ({searchQuery.trim() ? `${filteredRooms.length}/${totalRooms}` : filteredRooms.length})
+      </SidebarTitle>
 
       <RoomsList>
         {filteredRooms.length === 0 ? (
-          <div className="no-devices">No active rooms found. Run detection clients to register.</div>
+          <div className="no-devices">
+            {searchQuery.trim()
+              ? `No rooms match "${searchQuery.trim()}".`
+              : 'No active rooms found. Run detection clients to register.'}
+          </div>
         ) : (
           filteredRooms.map(room => (
             <RoomCard

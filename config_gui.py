@@ -5,16 +5,319 @@ With MAC-based license protection.
 """
 
 import json
+import os
+import platform
+import signal
+import subprocess
 import sys
+import tempfile
 import threading
 import tkinter as tk
+from dataclasses import asdict
+from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
 from typing import Dict, Any, Optional
+
+APP_DIR = Path(__file__).resolve().parent
+if Path.cwd() != APP_DIR:
+    os.chdir(APP_DIR)
+
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
+
+AUTH_DIR = APP_DIR / 'auth'
+if str(AUTH_DIR) not in sys.path:
+    sys.path.insert(0, str(AUTH_DIR))
 
 from auth.license_manager import LicenseManager
 from config import MonitoringConfig
 
-sys.path.insert(0, 'auth')
+
+class ScrollableCanvas(tk.Canvas):
+    """Canvas that keeps embedded form content full-width and mouse-wheel scrollable."""
+
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self._window_items = []
+        self.bind("<Configure>", self._resize_window_items)
+        self.bind("<Enter>", self._bind_mousewheel)
+        self.bind("<Leave>", self._unbind_mousewheel)
+
+    def create_window(self, *args, **kwargs):
+        item = super().create_window(*args, **kwargs)
+        if kwargs.get("window") is not None:
+            self._window_items.append(item)
+            self.itemconfigure(item, width=max(1, self.winfo_width()))
+        return item
+
+    def _resize_window_items(self, event):
+        for item in self._window_items:
+            self.itemconfigure(item, width=max(1, event.width))
+
+    def _bind_mousewheel(self, _event):
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.bind_all("<Button-4>", self._on_mousewheel)
+        self.bind_all("<Button-5>", self._on_mousewheel)
+
+    def _unbind_mousewheel(self, _event):
+        self.unbind_all("<MouseWheel>")
+        self.unbind_all("<Button-4>")
+        self.unbind_all("<Button-5>")
+
+    def _on_mousewheel(self, event):
+        if not self.bbox("all"):
+            return
+
+        if getattr(event, "num", None) == 4:
+            units = -1
+        elif getattr(event, "num", None) == 5:
+            units = 1
+        else:
+            delta = getattr(event, "delta", 0)
+            units = -int(delta / 120) if abs(delta) >= 120 else (-1 if delta > 0 else 1)
+
+        self.yview_scroll(units, "units")
+
+
+def _install_classic_tk_widgets(bg_color: str, panel_color: str, text_color: str, disabled_text_color: str):
+    """Use classic Tk widgets when Apple's deprecated ttk renderer mispaints in dark mode."""
+    if getattr(ttk, "_stampede_classic_widgets_installed", False):
+        return
+
+    uses_dark_palette = text_color.lower() in {"#ffffff", "#f2f2f2", "white"}
+    button_color = "#303030" if uses_dark_palette else "#e6e6e6"
+    active_button_color = "#3a3a3a" if uses_dark_palette else "#d9e8ff"
+    selected_button_color = "#444444" if uses_dark_palette else "#ffffff"
+    border_color = "#4a4a4a" if uses_dark_palette else "#b8b8b8"
+
+    class ClassicFrame(tk.Frame):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", bg_color)
+            super().__init__(master, **kwargs)
+
+    class ClassicLabel(tk.Label):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", bg_color)
+            kwargs.setdefault("fg", text_color)
+            super().__init__(master, **kwargs)
+
+    class ClassicButton(tk.Button):
+        def __init__(self, master=None, **kwargs):
+            kwargs.pop("style", None)
+            kwargs.setdefault("bg", button_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("activebackground", active_button_color)
+            kwargs.setdefault("activeforeground", text_color)
+            kwargs.setdefault("disabledforeground", disabled_text_color)
+            kwargs.setdefault("relief", tk.RAISED)
+            kwargs.setdefault("borderwidth", 1)
+            super().__init__(master, **kwargs)
+
+    class ClassicEntry(tk.Entry):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", panel_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("insertbackground", text_color)
+            kwargs.setdefault("disabledforeground", disabled_text_color)
+            kwargs.setdefault("relief", tk.SUNKEN)
+            super().__init__(master, **kwargs)
+
+    class ClassicSpinbox(tk.Spinbox):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", panel_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("insertbackground", text_color)
+            kwargs.setdefault("disabledforeground", disabled_text_color)
+            kwargs.setdefault("buttonbackground", button_color)
+            kwargs.setdefault("relief", tk.SUNKEN)
+            super().__init__(master, **kwargs)
+
+    class ClassicScale(tk.Scale):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", bg_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("troughcolor", panel_color)
+            kwargs.setdefault("highlightthickness", 0)
+            kwargs.setdefault("showvalue", False)
+            kwargs.setdefault("resolution", -1)
+            super().__init__(master, **kwargs)
+
+    class ClassicCheckbutton(tk.Checkbutton):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", bg_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("activebackground", bg_color)
+            kwargs.setdefault("activeforeground", text_color)
+            kwargs.setdefault("disabledforeground", disabled_text_color)
+            kwargs.setdefault("selectcolor", panel_color)
+            super().__init__(master, **kwargs)
+
+    class ClassicScrollbar(tk.Scrollbar):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", button_color)
+            kwargs.setdefault("troughcolor", bg_color)
+            kwargs.setdefault("activebackground", active_button_color)
+            super().__init__(master, **kwargs)
+
+    class ClassicSeparator(tk.Frame):
+        def __init__(self, master=None, orient="horizontal", **kwargs):
+            kwargs.setdefault("bg", border_color)
+            if orient == "vertical":
+                kwargs.setdefault("width", 1)
+            else:
+                kwargs.setdefault("height", 1)
+            super().__init__(master, **kwargs)
+
+    class ClassicCombobox(tk.Menubutton):
+        def __init__(self, master=None, values=(), width=None, state="normal", **kwargs):
+            self.variable = tk.StringVar()
+            self._values = tuple()
+            self._selection_callbacks = []
+            kwargs.setdefault("bg", panel_color)
+            kwargs.setdefault("fg", text_color)
+            kwargs.setdefault("activebackground", active_button_color)
+            kwargs.setdefault("activeforeground", text_color)
+            kwargs.setdefault("disabledforeground", disabled_text_color)
+            kwargs.setdefault("relief", tk.SUNKEN)
+            kwargs.setdefault("anchor", tk.W)
+            kwargs.setdefault("indicatoron", True)
+            kwargs["textvariable"] = self.variable
+            if width is not None:
+                kwargs["width"] = width
+            super().__init__(master, **kwargs)
+            self.menu = tk.Menu(self, tearoff=0, bg=panel_color, fg=text_color, activebackground=active_button_color)
+            super().configure(menu=self.menu)
+            self.configure(values=values, state=state)
+
+        def _set_values(self, values):
+            self._values = tuple(str(value) for value in values)
+            self.menu.delete(0, tk.END)
+            for value in self._values:
+                self.menu.add_command(label=value, command=lambda selected=value: self._select(selected))
+
+        def _select(self, value):
+            self.variable.set(value)
+            event = tk.Event()
+            event.widget = self
+            for callback in self._selection_callbacks:
+                callback(event)
+
+        def bind(self, sequence=None, func=None, add=None):
+            if sequence == '<<ComboboxSelected>>' and func is not None:
+                self._selection_callbacks.append(func)
+                return None
+            return super().bind(sequence, func, add)
+
+        def configure(self, cnf=None, **kwargs):
+            if cnf:
+                kwargs.update(cnf)
+            if "values" in kwargs:
+                self._set_values(kwargs.pop("values"))
+            if kwargs.get("state") == "readonly":
+                kwargs["state"] = tk.NORMAL
+            return super().configure(**kwargs)
+
+        config = configure
+
+        def __getitem__(self, key):
+            if key == "values":
+                return self._values
+            return super().__getitem__(key)
+
+        def current(self, index):
+            self.variable.set(self._values[index])
+
+        def set(self, value):
+            self.variable.set(str(value))
+
+        def get(self):
+            return self.variable.get()
+
+    class ClassicNotebook(tk.Frame):
+        def __init__(self, master=None, **kwargs):
+            kwargs.setdefault("bg", bg_color)
+            super().__init__(master, **kwargs)
+            self._tab_bar = tk.Frame(self, bg=bg_color)
+            self._tab_bar.place(x=0, y=0, relwidth=1)
+            self._tabs = []
+            self._selected = None
+            self.bind("<Configure>", lambda _event: self._layout_pages())
+            self._tab_bar.bind("<Configure>", lambda _event: self._layout_pages())
+
+        def add(self, child, text=""):
+            tab_index = len(self._tabs)
+            button = tk.Button(
+                self._tab_bar,
+                text=text,
+                bg=button_color,
+                fg=text_color,
+                activebackground=active_button_color,
+                activeforeground=text_color,
+                relief=tk.RAISED,
+                borderwidth=1,
+                command=lambda frame=child: self.select(frame),
+            )
+            button.grid(row=0, column=tab_index, sticky="w", padx=(0, 2), pady=(0, 2))
+            child.place(x=-20000, y=-20000, width=1, height=1)
+            self._tabs.append((child, button))
+            if self._selected is None:
+                self.select(child)
+            else:
+                self.select(self._selected)
+
+        def select(self, child=None):
+            if child is None:
+                return str(self._selected) if self._selected is not None else ""
+
+            if isinstance(child, str):
+                child = self.nametowidget(child)
+
+            self._selected = child
+            for frame, button in self._tabs:
+                button.configure(
+                    relief=tk.SUNKEN if frame is child else tk.RAISED,
+                    bg=selected_button_color if frame is child else button_color,
+                )
+                if frame is not child:
+                    frame.place_configure(x=-20000, y=-20000, width=1, height=1)
+
+            self._layout_pages()
+            for grandchild in child.winfo_children():
+                if isinstance(grandchild, tk.Canvas):
+                    grandchild.yview_moveto(0)
+                    break
+
+        def _layout_pages(self):
+            tab_height = max(1, self._tab_bar.winfo_reqheight())
+            width = max(1, self.winfo_width())
+            height = max(1, self.winfo_height() - tab_height)
+            self._tab_bar.place_configure(x=0, y=0, width=width, height=tab_height)
+
+            for frame, _button in self._tabs:
+                if frame is self._selected:
+                    frame.place_configure(x=0, y=tab_height, width=width, height=height)
+                    frame.lift()
+                else:
+                    frame.place_configure(x=-20000, y=-20000, width=1, height=1)
+                    frame.lower()
+
+            self._tab_bar.lift()
+
+        def tabs(self):
+            return [str(frame) for frame, _ in self._tabs]
+
+    ttk.Frame = ClassicFrame
+    ttk.Label = ClassicLabel
+    ttk.Button = ClassicButton
+    ttk.Entry = ClassicEntry
+    ttk.Spinbox = ClassicSpinbox
+    ttk.Scale = ClassicScale
+    ttk.Checkbutton = ClassicCheckbutton
+    ttk.Scrollbar = ClassicScrollbar
+    ttk.Separator = ClassicSeparator
+    ttk.Combobox = ClassicCombobox
+    ttk.Notebook = ClassicNotebook
+    ttk._stampede_classic_widgets_installed = True
 
 
 class ConfigurationGUI:
@@ -29,12 +332,16 @@ class ConfigurationGUI:
         """
         self.root = root
         self.root.title("Crowd Monitoring System - Configuration Manager")
-        self.root.geometry("1000x800")
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        window_width = min(1000, max(760, screen_width - 80))
+        window_height = min(800, max(560, screen_height - 120))
+        self.root.geometry(f"{window_width}x{window_height}")
+        self.root.minsize(760, 520)
+        self._setup_style()
 
         # Initialize license manager with correct path
-        import os
-        license_path = os.path.join('auth', 'license.dat')
-        self.license_manager = LicenseManager(license_path)
+        self.license_manager = LicenseManager(str(AUTH_DIR / 'license.dat'))
 
         # Check license before showing UI
         if not self._check_license():
@@ -46,6 +353,8 @@ class ConfigurationGUI:
         self.config_widgets: Dict[str, tk.Widget] = {}
         self.current_monitor = None  # Reference to running monitor
         self.monitor_thread: Optional[threading.Thread] = None
+        self.monitor_process: Optional[subprocess.Popen] = None
+        self.monitor_config_path: Optional[str] = None
         self.stop_requested = False  # Flag to signal monitor to stop
 
         # Camera detection state
@@ -55,18 +364,11 @@ class ConfigurationGUI:
 
         # Setup UI
         self._setup_ui()
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
-        # Try to load system_conf.json if it exists
-        self._load_system_config()
-
-        # Load default values
+        # Load defaults immediately, then defer startup I/O until after Tk paints.
         self._load_config_to_ui()
-
-        # Start periodic license check
-        self._schedule_license_check()
-
-        # Start camera detection automatically
-        self.root.after(100, self._detect_cameras_async)
+        self.root.after(250, self._finish_startup)
 
     def _check_license(self) -> bool:
         """
@@ -105,16 +407,118 @@ class ConfigurationGUI:
 
             return True
 
+    def _setup_style(self):
+        """Use deterministic light colors so macOS dark mode does not hide widgets."""
+        self.use_classic_widgets = (
+                os.getenv("STAMPEDE_CLASSIC_TK") == "1"
+                or (platform.system() == "Darwin" and tk.TkVersion < 8.6)
+        )
+
+        if self.use_classic_widgets:
+            self.bg_color = "#1f1f1f"
+            self.panel_color = "#303030"
+            self.text_color = "#f2f2f2"
+            self.disabled_text_color = "#8c8c8c"
+        else:
+            self.bg_color = "#f2f2f2"
+            self.panel_color = "#ffffff"
+            self.text_color = "#1f1f1f"
+            self.disabled_text_color = "#7a7a7a"
+
+        self.root.configure(bg=self.bg_color)
+        if self.use_classic_widgets:
+            _install_classic_tk_widgets(
+                self.bg_color,
+                self.panel_color,
+                self.text_color,
+                self.disabled_text_color,
+            )
+            print("Using classic Tk widgets for deprecated Apple Tk renderer")
+
+        style = ttk.Style(self.root)
+        if platform.system() == "Darwin" and "clam" in style.theme_names():
+            try:
+                style.theme_use("clam")
+            except tk.TclError:
+                pass
+
+        style.configure(".", background=self.bg_color, foreground=self.text_color)
+        style.configure("TFrame", background=self.bg_color)
+        style.configure("TLabel", background=self.bg_color, foreground=self.text_color)
+        style.configure("TCheckbutton", background=self.bg_color, foreground=self.text_color)
+        style.configure("TNotebook", background=self.bg_color, borderwidth=0)
+        style.configure(
+            "TNotebook.Tab",
+            background="#d8d8d8",
+            foreground=self.text_color,
+            padding=(10, 5),
+        )
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", self.panel_color), ("active", "#e6e6e6")],
+            foreground=[("selected", self.text_color), ("disabled", self.disabled_text_color)],
+        )
+        style.configure("TButton", background="#e6e6e6", foreground=self.text_color, padding=(8, 4))
+        style.map(
+            "TButton",
+            background=[("active", "#d9e8ff"), ("disabled", "#e0e0e0")],
+            foreground=[("disabled", self.disabled_text_color)],
+        )
+        style.configure("Accent.TButton", background="#0f62fe", foreground="#ffffff")
+        style.map(
+            "Accent.TButton",
+            background=[("active", "#0353e9"), ("disabled", "#b8c1d1")],
+            foreground=[("disabled", "#f0f0f0")],
+        )
+        style.configure("TEntry", fieldbackground=self.panel_color, foreground=self.text_color)
+        style.configure("TSpinbox", fieldbackground=self.panel_color, foreground=self.text_color)
+        style.configure("TCombobox", fieldbackground=self.panel_color, foreground=self.text_color)
+        style.map(
+            "TCombobox",
+            fieldbackground=[("readonly", self.panel_color)],
+            foreground=[("readonly", self.text_color), ("disabled", self.disabled_text_color)],
+        )
+        style.configure("Horizontal.TScale", background=self.bg_color)
+
+    def _create_canvas(self, parent: tk.Widget) -> tk.Canvas:
+        """Create a canvas that does not inherit macOS' dark system background."""
+        return ScrollableCanvas(parent, background=self.bg_color, highlightthickness=0, borderwidth=0)
+
+    def _finish_startup(self):
+        """Run startup work after the configuration window has had a chance to paint."""
+        self._load_system_config()
+        self._load_config_to_ui()
+        self._schedule_license_check()
+        self.root.after(750, self._detect_cameras_async)
+
+    def _get_resource_path(self, relative_path: str) -> Path:
+        """Resolve resource paths without importing detector/YOLO during GUI startup."""
+        try:
+            base_path = Path(sys._MEIPASS)  # type: ignore[attr-defined]
+        except AttributeError:
+            base_path = APP_DIR
+
+        resource_path = base_path / relative_path
+        if resource_path.exists():
+            return resource_path
+
+        if getattr(sys, 'frozen', False):
+            resource_path = Path(sys.executable).resolve().parent / relative_path
+            if resource_path.exists():
+                return resource_path
+
+        packaged_resource_path = APP_DIR / "auth" / "CrowdMonitor_Package_Windows" / relative_path
+        if packaged_resource_path.exists():
+            return packaged_resource_path
+
+        return Path(relative_path)
+
     def _load_system_config(self):
         """Load system configuration from system_conf.json if it exists"""
         try:
-            # Try to find system_conf.json using resource path resolution
-            import os
-            from detector import get_resource_path
+            config_path = self._get_resource_path('system_conf.json')
 
-            config_path = get_resource_path('system_conf.json')
-
-            if os.path.exists(config_path):
+            if config_path.exists():
                 with open(config_path, 'r') as f:
                     config_dict = json.load(f)
 
@@ -216,7 +620,7 @@ class ConfigurationGUI:
         self.notebook.add(frame, text="Video Source")
 
         # Create scrollable frame
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -299,7 +703,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Grid & Spatial")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -339,7 +743,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Detection")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -401,7 +805,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Tracking")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -460,7 +864,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Smoothing & Alerts")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -532,7 +936,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Visualization")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -602,7 +1006,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Interactive")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -656,7 +1060,7 @@ class ConfigurationGUI:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Calibration")
 
-        canvas = tk.Canvas(frame)
+        canvas = self._create_canvas(frame)
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
 
@@ -741,16 +1145,115 @@ class ConfigurationGUI:
     def _detect_cameras_thread(self):
         """Background thread for camera detection"""
         try:
-            # Import CrowdMonitor to use its static method
-            from monitor import CrowdMonitor
-
-            self.available_cameras = CrowdMonitor.detect_available_cameras(max_cameras=10)
+            if platform.system() == "Darwin" and not getattr(sys, 'frozen', False):
+                self.available_cameras = self._detect_available_cameras_process(max_cameras=10)
+            else:
+                self.available_cameras = self._detect_available_cameras(max_cameras=10)
 
             # Update UI on main thread
-            self.root.after(0, self._on_cameras_detected)
+            try:
+                self.root.after(0, self._on_cameras_detected)
+            except tk.TclError:
+                pass
 
         except Exception as e:
-            self.root.after(0, lambda: self._on_camera_detection_error(str(e)))
+            try:
+                self.root.after(0, lambda: self._on_camera_detection_error(str(e)))
+            except tk.TclError:
+                pass
+
+    def _detect_available_cameras_process(self, max_cameras: int) -> list:
+        """Detect cameras outside the Tk process on macOS to avoid Cocoa event-loop conflicts."""
+        script = r'''
+import json
+import platform
+
+import cv2
+
+
+def open_video_capture(source):
+    avfoundation = getattr(cv2, "CAP_AVFOUNDATION", None)
+    if isinstance(source, int) and platform.system() == "Darwin" and avfoundation is not None:
+        cap = cv2.VideoCapture(source, avfoundation)
+        if cap.isOpened():
+            return cap
+        cap.release()
+    return cv2.VideoCapture(source)
+
+
+cameras = []
+for index in range(MAX_CAMERAS):
+    cap = None
+    try:
+        cap = open_video_capture(index)
+        if cap.isOpened():
+            ret, _ = cap.read()
+            if ret:
+                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                cameras.append({
+                    "index": index,
+                    "name": f"Camera {index} ({width}x{height})",
+                    "width": width,
+                    "height": height,
+                })
+    except Exception:
+        pass
+    finally:
+        if cap is not None:
+            cap.release()
+
+print(json.dumps(cameras))
+'''.replace("MAX_CAMERAS", str(max_cameras))
+
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            cwd=str(APP_DIR),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            message = result.stderr.strip() or result.stdout.strip() or f"exit code {result.returncode}"
+            raise RuntimeError(message)
+        return json.loads(result.stdout.strip() or "[]")
+
+    def _detect_available_cameras(self, max_cameras: int) -> list:
+        """Detect camera sources without importing the monitor/YOLO stack."""
+        import cv2
+
+        def open_video_capture(source):
+            avfoundation = getattr(cv2, "CAP_AVFOUNDATION", None)
+            if isinstance(source, int) and platform.system() == "Darwin" and avfoundation is not None:
+                cap = cv2.VideoCapture(source, avfoundation)
+                if cap.isOpened():
+                    return cap
+                cap.release()
+            return cv2.VideoCapture(source)
+
+        available_cameras = []
+        for index in range(max_cameras):
+            cap = None
+            try:
+                cap = open_video_capture(index)
+                if cap.isOpened():
+                    ret, _ = cap.read()
+                    if ret:
+                        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        available_cameras.append({
+                            'index': index,
+                            'name': f"Camera {index} ({width}x{height})",
+                            'width': width,
+                            'height': height,
+                        })
+            except Exception:
+                continue
+            finally:
+                if cap is not None:
+                    cap.release()
+
+        return available_cameras
 
     def _on_cameras_detected(self):
         """Called when camera detection completes successfully"""
@@ -1182,6 +1685,10 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
 
     def _run_monitor(self):
         """Run the monitoring system"""
+        if self._monitor_is_running():
+            messagebox.showwarning("Monitor Running", "The monitoring system is already running.")
+            return
+
         # Check if cameras are detected or video file selected
         if not self.cameras_detected:
             messagebox.showwarning(
@@ -1208,14 +1715,90 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
             self.stop_button.config(state=tk.NORMAL)
             self.status_var.set("Monitoring system running...")
 
-            # Run monitor in a separate thread to keep GUI responsive
-            self.monitor_thread = threading.Thread(target=self._run_monitor_thread, args=(config,), daemon=True)
-            self.monitor_thread.start()
+            if platform.system() == "Darwin":
+                self._run_monitor_process(config)
+            else:
+                # Run monitor in a separate thread to keep GUI responsive
+                self.monitor_thread = threading.Thread(target=self._run_monitor_thread, args=(config,), daemon=True)
+                self.monitor_thread.start()
 
         except Exception as e:
+            self.monitor_process = None
+            self._cleanup_monitor_config()
             messagebox.showerror("Error", f"Failed to start monitoring system:\n{str(e)}")
             self.run_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
+
+    def _monitor_is_running(self) -> bool:
+        """Return True when a monitor thread or child process is active."""
+        if self.monitor_process is not None and self.monitor_process.poll() is None:
+            return True
+        return self.monitor_thread is not None and self.monitor_thread.is_alive()
+
+    def _run_monitor_process(self, config: MonitoringConfig):
+        """Run monitor in a child process so OpenCV owns the macOS main thread."""
+        self._cleanup_monitor_config()
+        self.monitor_config_path = self._write_monitor_config(config)
+
+        command = [
+            sys.executable,
+            str(APP_DIR / "main.py"),
+            "--config-file",
+            self.monitor_config_path,
+        ]
+        self.monitor_process = subprocess.Popen(command, cwd=str(APP_DIR))
+
+        watcher = threading.Thread(
+            target=self._wait_for_monitor_process,
+            args=(self.monitor_process,),
+            daemon=True,
+        )
+        watcher.start()
+
+    def _write_monitor_config(self, config: MonitoringConfig) -> str:
+        """Write a temporary JSON config consumed by the monitor process."""
+        fd, path = tempfile.mkstemp(prefix="stampede-monitor-", suffix=".json")
+        with os.fdopen(fd, 'w') as f:
+            json.dump(asdict(config), f, indent=2)
+        return path
+
+    def _wait_for_monitor_process(self, process: subprocess.Popen):
+        """Wait for the monitor child process without blocking Tkinter."""
+        return_code = process.wait()
+        try:
+            self.root.after(0, lambda: self._on_monitor_process_ended(process, return_code))
+        except tk.TclError:
+            self._cleanup_monitor_config()
+
+    def _on_monitor_process_ended(self, process: subprocess.Popen, return_code: int):
+        """Update UI after the macOS monitor process exits."""
+        if self.monitor_process is not process:
+            return
+
+        self.monitor_process = None
+        self._cleanup_monitor_config()
+
+        if return_code not in (0, -signal.SIGINT) and not self.stop_requested:
+            messagebox.showerror(
+                "Monitor Error",
+                f"Monitoring process exited with code {return_code}. Check the log for details."
+            )
+
+        self._on_monitor_ended()
+
+    def _cleanup_monitor_config(self):
+        """Remove the temporary monitor config file if it exists."""
+        if not self.monitor_config_path:
+            return
+
+        try:
+            os.remove(self.monitor_config_path)
+        except FileNotFoundError:
+            pass
+        except Exception:
+            pass
+        finally:
+            self.monitor_config_path = None
 
     def _run_monitor_thread(self, config: MonitoringConfig):
         """Run monitor in a separate thread"""
@@ -1238,20 +1821,29 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
             success = monitor.initialize()
 
             if not success and not self.stop_requested:
-                self.root.after(0, lambda: messagebox.showerror(
-                    "Monitor Error",
-                    "Failed to initialize monitoring system. Check the log for details."
-                ))
+                try:
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Monitor Error",
+                        "Failed to initialize monitoring system. Check the log for details."
+                    ))
+                except tk.TclError:
+                    pass
             
         except Exception as e:
             if not self.stop_requested:
-                self.root.after(0, lambda: messagebox.showerror(
-                    "Monitor Error",
-                    f"Error running monitor:\n{str(e)}"
-                ))
+                try:
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Monitor Error",
+                        f"Error running monitor:\n{str(e)}"
+                    ))
+                except tk.TclError:
+                    pass
         finally:
             # Update UI when monitor ends
-            self.root.after(0, self._on_monitor_ended)
+            try:
+                self.root.after(0, self._on_monitor_ended)
+            except tk.TclError:
+                pass
 
     def _on_monitor_ended(self):
         """Called when monitoring ends"""
@@ -1263,6 +1855,14 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
     def _stop_monitor(self):
         """Stop the monitoring system"""
         try:
+            if self.monitor_process is not None and self.monitor_process.poll() is None:
+                self.stop_requested = True
+                self.status_var.set("Stopping monitoring system...")
+                self.stop_button.config(state=tk.DISABLED)
+                self.monitor_process.send_signal(signal.SIGINT)
+                self.root.after(5000, self._terminate_monitor_process_if_needed)
+                return
+
             # Set the stop flag - the monitor thread will check this and exit gracefully
             self.stop_requested = True
 
@@ -1278,6 +1878,45 @@ Status: {'Valid' if license_info.get('is_valid') else 'Expired'}
             self.run_button.config(state=tk.NORMAL)
             self.stop_button.config(state=tk.DISABLED)
             self.status_var.set("Monitor stopped")
+
+    def _terminate_monitor_process_if_needed(self):
+        """Escalate to SIGTERM if the monitor child ignored SIGINT."""
+        process = self.monitor_process
+        if process is None or process.poll() is not None:
+            return
+
+        process.terminate()
+        self.root.after(2000, self._kill_monitor_process_if_needed)
+
+    def _kill_monitor_process_if_needed(self):
+        """Force-kill the monitor child only after graceful shutdown fails."""
+        process = self.monitor_process
+        if process is None or process.poll() is not None:
+            return
+
+        process.kill()
+
+    def _on_close(self):
+        """Close the configuration UI without implicitly stopping monitoring."""
+        if self._monitor_is_running():
+            if self.monitor_process is not None and self.monitor_process.poll() is None:
+                if not messagebox.askyesno(
+                        "Exit",
+                        "Monitoring is still running. Close the configuration UI and leave it running?\n\nUse Stop Monitor before exiting if you want to close the room."
+                ):
+                    return
+                self.monitor_process = None
+                self.root.destroy()
+                return
+
+            messagebox.showwarning(
+                "Monitor Running",
+                "Monitoring is still running inside this UI process. Use Stop Monitor before closing the window."
+            )
+            return
+
+        self._cleanup_monitor_config()
+        self.root.destroy()
 
     def run(self):
         """Run the GUI application"""

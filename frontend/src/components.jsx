@@ -27,33 +27,37 @@ export const AppContainer = styled('div', {
   display: 'flex',
   flexDirection: 'column',
   height: '100vh',
+  minHeight: '100dvh',
   width: '100%',
   overflow: 'hidden',
-  backgroundColor: '$bgBase',
+  background: 'radial-gradient(circle at 18% 0%, rgba(56, 189, 248, 0.10), transparent 34rem), radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.06), transparent 28rem), $bgBase',
   color: '$textMain',
   fontFamily: '$sans',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 });
 
 export const Header = styled('header', {
-  height: '56px',
+  height: '64px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: '0 16px',
-  background: '$bgSurface',
+  padding: '0 22px',
+  background: 'rgba(16, 24, 39, 0.86)',
   borderBottom: '1px solid $border',
+  backdropFilter: 'blur(18px)',
+  boxShadow: '0 10px 36px rgba(0, 0, 0, 0.24)',
   zIndex: 100,
   '@bp2': {
-    height: '48px',
-    padding: '0 10px',
+    height: '56px',
+    padding: '0 12px',
   },
 });
 
 export const BrandSection = styled('div', {
   display: 'flex',
   alignItems: 'center',
-  gap: '10px',
+  gap: '12px',
+  minWidth: 0,
 });
 
 export const SidebarToggle = styled('button', {
@@ -82,30 +86,31 @@ export const SidebarToggle = styled('button', {
 });
 
 export const BrandLogo = styled('div', {
-  width: '28px',
-  height: '28px',
-  borderRadius: '$sm',
-  background: 'linear-gradient(135deg, $accent, #7c3aed)',
+  width: '34px',
+  height: '34px',
+  borderRadius: '$md',
+  background: 'linear-gradient(135deg, $accent, #2563eb)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  boxShadow: '0 4px 12px rgba(94, 124, 240, 0.25)',
+  boxShadow: '0 14px 34px rgba(37, 99, 235, 0.28)',
   transition: 'transform 0.3s ease',
   '&:hover': {
     transform: 'rotate(10deg) scale(1.05)',
   },
   '@bp2': {
-    width: '24px',
-    height: '24px',
+    width: '30px',
+    height: '30px',
   },
 });
 
 export const BrandText = styled('div', {
   '& h1': {
-    fontSize: '14px',
-    fontWeight: 600,
+    fontSize: '15px',
+    fontWeight: 700,
     color: '$textMain',
-    letterSpacing: '-0.2px',
+    letterSpacing: '-0.35px',
+    lineHeight: 1.1,
     '@bp3': {
       fontSize: '12px',
     },
@@ -133,10 +138,10 @@ export const HeaderControls = styled('div', {
 export const SystemStatus = styled('div', {
   display: 'flex',
   alignItems: 'center',
-  gap: '6px',
-  background: '$bgBase',
-  padding: '6px 12px',
-  borderRadius: '$md',
+  gap: '8px',
+  background: 'rgba(7, 11, 18, 0.72)',
+  padding: '8px 12px',
+  borderRadius: '$round',
   border: '1px solid $border',
   transition: 'border-color 0.2s',
   '&:hover': {
@@ -169,11 +174,11 @@ export const StatusLabel = styled('span', {
 });
 
 export const IconOnlyBtn = styled('button', {
-  background: 'transparent',
+  background: 'rgba(7, 11, 18, 0.45)',
   border: '1px solid $border',
   color: '$textMuted',
-  width: '28px',
-  height: '28px',
+  width: '34px',
+  height: '34px',
   borderRadius: '$md',
   display: 'flex',
   alignItems: 'center',
@@ -189,8 +194,8 @@ export const IconOnlyBtn = styled('button', {
     transform: 'scale(0.92)',
   },
   '@bp2': {
-    width: '24px',
-    height: '24px',
+    width: '30px',
+    height: '30px',
     borderRadius: '$sm',
     '& svg': {
       width: '12px !important',
@@ -219,8 +224,8 @@ export const DashboardBody = styled('div', {
 // ── Sidebar Drawer ──
 export const SidebarBackdrop = styled('div', {
   position: 'absolute',
-  inset: '56px 0 0 0',
-  background: 'rgba(0, 0, 0, 0.4)',
+  inset: '64px 0 0 0',
+  background: 'rgba(0, 0, 0, 0.56)',
   zIndex: 998,
   backdropFilter: 'blur(8px)',
   animation: `${fadeIn} 0.2s cubic-bezier(0.4, 0, 0.2, 1)`,
@@ -232,13 +237,14 @@ export const SidebarBackdrop = styled('div', {
 });
 
 export const Sidebar = styled('aside', {
-  width: '260px',
-  minWidth: '260px',
-  background: '$bgSurface',
+  width: '292px',
+  minWidth: '292px',
+  background: 'rgba(16, 24, 39, 0.82)',
   borderRight: '1px solid $border',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
+  backdropFilter: 'blur(18px)',
   transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '@bp2': {
     position: 'fixed',
@@ -261,7 +267,7 @@ export const Sidebar = styled('aside', {
 });
 
 export const SidebarSearchWrap = styled('div', {
-  padding: '10px',
+  padding: '14px 12px',
   borderBottom: '1px solid $border',
 });
 
@@ -269,10 +275,10 @@ export const SearchContainer = styled('div', {
   display: 'flex',
   alignItems: 'center',
   gap: '6px',
-  background: '$bgBase',
+  background: 'rgba(7, 11, 18, 0.72)',
   border: '1px solid $border',
   borderRadius: '$md',
-  padding: '6px 10px',
+  padding: '9px 11px',
   transition: 'border-color 0.2s',
   '&:focus-within': {
     borderColor: '$borderFocus',
@@ -282,34 +288,34 @@ export const SearchContainer = styled('div', {
     background: 'transparent',
     border: 'none',
     color: '$textMain',
-    fontSize: '11px',
+    fontSize: '12px',
     outline: 'none',
   },
 });
 
 export const SidebarTitle = styled('div', {
-  padding: '12px 12px 6px',
-  fontSize: '9px',
-  fontWeight: 600,
+  padding: '16px 14px 8px',
+  fontSize: '10px',
+  fontWeight: 700,
   textTransform: 'uppercase',
   color: '$textMuted',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.8px',
 });
 
 export const RoomsList = styled('div', {
   flex: 1,
   overflowY: 'auto',
-  padding: '8px',
+  padding: '8px 10px 14px',
   display: 'flex',
   flexDirection: 'column',
   gap: '6px',
 });
 
 export const RoomCard = styled('div', {
-  background: '$bgBase',
+  background: 'linear-gradient(180deg, rgba(23, 34, 53, 0.78), rgba(12, 18, 30, 0.78))',
   border: '1px solid $border',
-  borderRadius: '$md',
-  padding: '12px',
+  borderRadius: '$lg',
+  padding: '14px',
   cursor: 'pointer',
   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   animation: `${fadeIn} 0.3s ease`,
@@ -324,8 +330,8 @@ export const RoomCard = styled('div', {
     selected: {
       true: {
         borderColor: '$accent',
-        background: '$bgHover',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.14), rgba(23, 34, 53, 0.86))',
+        boxShadow: '0 16px 34px rgba(0,0,0,0.24)',
       },
     },
     status: {
@@ -348,10 +354,10 @@ export const RoomCard = styled('div', {
 export const ContentArea = styled('main', {
   flex: 1,
   overflowY: 'auto',
-  padding: '16px',
+  padding: '18px',
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
+  gap: '18px',
   '@bp2': {
     padding: '12px',
     gap: '12px',
@@ -362,12 +368,12 @@ export const DetailHeaderPanel = styled('div', {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  background: '$bgSurface',
+  background: 'linear-gradient(135deg, rgba(23, 34, 53, 0.86), rgba(16, 24, 39, 0.82))',
   border: '1px solid $border',
-  padding: '12px 16px',
+  padding: '16px 18px',
   borderRadius: '$lg',
   gap: '12px',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+  boxShadow: '0 16px 40px rgba(0, 0, 0, 0.18)',
   animation: `${fadeIn} 0.3s cubic-bezier(0.4, 0, 0.2, 1)`,
   '@bp2': {
     flexDirection: 'column',
@@ -378,33 +384,37 @@ export const DetailHeaderPanel = styled('div', {
 
 export const MetricsRow = styled('div', {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-  gap: '12px',
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+  gap: '14px',
+  '@bp1': {
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  },
   '@bp3': {
     gridTemplateColumns: '1fr',
   },
 });
 
 export const MetricCard = styled('div', {
-  background: '$bgSurface',
+  background: 'linear-gradient(180deg, rgba(23, 34, 53, 0.82), rgba(13, 20, 33, 0.86))',
   border: '1px solid $border',
   borderRadius: '$lg',
-  padding: '14px',
+  padding: '16px',
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  gap: '14px',
+  minWidth: 0,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   animation: `${fadeIn} 0.4s ease`,
   '&:hover': {
     borderColor: '$borderFocus',
     transform: 'translateY(-2px)',
-    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 16px 34px rgba(0, 0, 0, 0.22)',
   },
 });
 
 export const MetricIconBox = styled('div', {
-  width: '36px',
-  height: '36px',
+  width: '42px',
+  height: '42px',
   borderRadius: '$md',
   display: 'flex',
   alignItems: 'center',
@@ -420,7 +430,7 @@ export const MetricIconBox = styled('div', {
 });
 
 export const MetricValue = styled('span', {
-  fontSize: '20px',
+  fontSize: '22px',
   fontWeight: 700,
   fontFamily: '$mono',
   display: 'block',
@@ -435,7 +445,7 @@ export const MetricName = styled('span', {
 
 export const VisualizersGrid = styled('div', {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)',
   gap: '16px',
   '@bp1': {
     gridTemplateColumns: '1fr',
@@ -444,7 +454,7 @@ export const VisualizersGrid = styled('div', {
 
 export const DetailsRow = styled('div', {
   display: 'grid',
-  gridTemplateColumns: '1.2fr 0.8fr',
+  gridTemplateColumns: '1fr',
   gap: '16px',
   '@bp1': {
     gridTemplateColumns: '1fr',
@@ -452,17 +462,21 @@ export const DetailsRow = styled('div', {
 });
 
 export const DashboardPanel = styled('div', {
-  background: '$bgSurface',
+  background: 'linear-gradient(180deg, rgba(16, 24, 39, 0.92), rgba(12, 18, 30, 0.92))',
   border: '1px solid $border',
   borderRadius: '$lg',
-  padding: '16px',
+  padding: '18px',
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-  transition: 'border-color 0.2s',
+  boxShadow: '0 18px 42px rgba(0, 0, 0, 0.20)',
+  transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s',
   animation: `${fadeIn} 0.5s ease`,
   '&:hover': {
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '$borderFocus',
+    boxShadow: '0 22px 48px rgba(0, 0, 0, 0.24)',
+  },
+  '@bp2': {
+    padding: '14px',
   },
 });
 
@@ -470,13 +484,20 @@ export const RadarContainerOuter = styled('div', {
   position: 'relative',
   width: '100%',
   aspectRatio: '16/9',
-  background: '$bgBase',
+  background: 'radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05), transparent 42%), #05080d',
   borderRadius: '$md',
   border: '1px solid $border',
   overflow: 'hidden',
+  minHeight: '360px',
   transition: 'border-color 0.2s',
   '&:hover': {
     borderColor: '$borderFocus',
+  },
+  '@bp2': {
+    minHeight: '280px',
+  },
+  '@bp3': {
+    minHeight: '235px',
   },
 });
 
@@ -486,7 +507,7 @@ export const RadarSweepBeam = styled('div', {
   left: '50%',
   width: '150%',
   height: '150%',
-  background: 'conic-gradient(from 0deg, rgba(212, 175, 55, 0.15) 0deg, transparent 60deg, transparent 360deg)',
+  background: 'conic-gradient(from 0deg, rgba(56, 189, 248, 0.18) 0deg, transparent 58deg, transparent 360deg)',
   transformOrigin: '0% 0%',
   pointerEvents: 'none',
   animation: `${radarSweep} 8s linear infinite`,
@@ -500,13 +521,13 @@ export const RadarSweepBeam = styled('div', {
 
 export const GridWrapper = styled('div', {
   display: 'grid',
-  gap: '3px',
-  padding: '6px',
-  background: '$bgBase',
+  gap: '5px',
+  padding: '8px',
+  background: '#05080d',
   border: '1px solid $border',
   borderRadius: '$md',
   transition: 'all 0.3s ease',
-  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)',
+  boxShadow: 'inset 0 2px 18px rgba(0,0,0,0.36)',
 });
 
 export const GridCellBox = styled('div', {
@@ -515,7 +536,7 @@ export const GridCellBox = styled('div', {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: '10px',
+  fontSize: '11px',
   fontWeight: 600,
   fontFamily: '$mono',
   cursor: 'default',
@@ -559,20 +580,4 @@ export const GridCellBox = styled('div', {
       critical: { background: '$colorDangerBg', color: '$colorDanger' },
     },
   },
-});
-
-export const LogConsole = styled('div', {
-  background: '$bgBase',
-  borderRadius: '$md',
-  border: '1px solid $border',
-  padding: '10px',
-  fontFamily: '$mono',
-  fontSize: '9px',
-  color: '$colorSafe',
-  height: '120px',
-  overflowY: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.2)',
 });

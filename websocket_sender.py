@@ -17,6 +17,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import List, Optional, TYPE_CHECKING
 
+from config import DEFAULT_WEBSOCKET_DEVICE_ID, DEFAULT_WEBSOCKET_DEVICE_NAME
 from logger_config import get_logger
 
 if TYPE_CHECKING:
@@ -144,7 +145,7 @@ def build_payload(
         A fully populated MonitoringPayload ready for JSON serialisation.
     """
     # ── Device info ────────────────────────────────────────────────────
-    device_id = config.websocket_device_id or socket.gethostname()
+    device_id = config.websocket_device_id or DEFAULT_WEBSOCKET_DEVICE_ID
     mac_address = config.websocket_mac_address or get_local_mac_address()
     ip_address: Optional[str] = None
     try:
@@ -152,9 +153,13 @@ def build_payload(
     except Exception:
         pass
 
+    device_name = config.websocket_device_name or DEFAULT_WEBSOCKET_DEVICE_NAME
+    if device_id not in device_name:
+        device_name = f"{device_name} ({device_id})"
+
     device_info = DeviceInfoPayload(
         device_id=device_id,
-        device_name=config.websocket_device_name or device_id,
+        device_name=device_name,
         location=config.websocket_location,
         camera_source=str(config.source),
         mac_address=mac_address,
@@ -201,7 +206,7 @@ def build_payload(
             count = float(occupancy_grid.ema_counts[row, col])
             density = count / occupancy_grid.cell_capacity if occupancy_grid.cell_capacity else 0.0
 
-            if occupancy_grid.notified[row, col] or count > occupancy_grid.cell_capacity:
+            if count > occupancy_grid.cell_capacity:
                 cell_alert = "CRITICAL"
                 grid_alert = "CRITICAL"
             elif count > occupancy_grid.cell_capacity * warning_threshold:

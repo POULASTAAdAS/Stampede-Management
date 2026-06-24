@@ -1,4 +1,3 @@
-import React from 'react'
 import { Users } from 'lucide-react'
 import { DashboardPanel } from '../components'
 
@@ -14,7 +13,7 @@ export default function TrackedTable({
       <div className="panel-header">
         <div className="panel-title">
           <Users size={14} />
-          <span>Identified Crowd Tracking Registrations</span>
+          <span>Tracked Crowd Entities</span>
         </div>
       </div>
 
@@ -22,18 +21,18 @@ export default function TrackedTable({
         <table className="cyber-table">
           <thead>
             <tr>
-              <th>Track ID</th>
+              <th>Track</th>
               <th>Status</th>
               <th>Confidence</th>
-              <th>Age (Frames)</th>
-              <th>Radar Coord (X, Y)</th>
+              <th>Age</th>
+              <th>Position</th>
             </tr>
           </thead>
           <tbody>
             {trackedPersons.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No human vectors identified in visual field.
+                  No tracked occupants in the current camera field.
                 </td>
               </tr>
             ) : (

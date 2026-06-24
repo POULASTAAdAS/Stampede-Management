@@ -3,8 +3,10 @@ Main entry point for the Enhanced Crowd Monitoring System.
 """
 
 import argparse
+import json
 import os
 import sys
+from dataclasses import fields
 from pathlib import Path
 
 APP_DIR = Path(__file__).resolve().parent
@@ -21,7 +23,7 @@ if str(AUTH_DIR) not in sys.path:
 import cv2
 
 from auth.license_manager import LicenseManager
-from config import MonitoringConfig
+from config import DEFAULT_WEBSOCKET_DEVICE_ID, DEFAULT_WEBSOCKET_DEVICE_NAME, MonitoringConfig
 from logger_config import get_logger
 from monitor import CrowdMonitor
 
@@ -39,6 +41,8 @@ def parse_arguments() -> MonitoringConfig:
         description="Enhanced Crowd Monitoring System with Interactive Features",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    parser.add_argument("--config-file", type=str,
+                        help="Load MonitoringConfig values from a JSON file")
 
     # Video source and model
     parser.add_argument("--source", type=str, default="0",
@@ -106,13 +110,13 @@ def parse_arguments() -> MonitoringConfig:
     parser.add_argument("--enable-websocket-request", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--disable-websocket-flow-log", action="store_true",
                         help="Disable temporary WebSocket flow/payload logging")
-    parser.add_argument("--websocket-url", type=str, default="ws://localhost:8085/ws-raw",
+    parser.add_argument("--websocket-url", type=str, default="wss://stamped.poulastaa.dev/ws-raw",
                         help="Backend WebSocket URL")
-    parser.add_argument("--websocket-device-id", type=str, default="",
+    parser.add_argument("--websocket-device-id", type=str, default=DEFAULT_WEBSOCKET_DEVICE_ID,
                         help="Device ID sent in WebSocket payloads")
     parser.add_argument("--websocket-mac-address", type=str, default="",
                         help="MAC address sent in WebSocket payloads; defaults to local machine MAC")
-    parser.add_argument("--websocket-device-name", type=str, default="",
+    parser.add_argument("--websocket-device-name", type=str, default=DEFAULT_WEBSOCKET_DEVICE_NAME,
                         help="Device name sent in WebSocket payloads")
     parser.add_argument("--websocket-location", type=str, default="Unknown Location",
                         help="Device location sent in WebSocket payloads")
@@ -120,6 +124,19 @@ def parse_arguments() -> MonitoringConfig:
                         help="Seconds between debounced WebSocket payload sends/logs")
 
     args = parser.parse_args()
+
+    if args.config_file:
+        with open(args.config_file, 'r') as f:
+            config_dict = json.load(f)
+
+        valid_fields = {field.name for field in fields(MonitoringConfig)}
+        unknown_fields = sorted(set(config_dict) - valid_fields)
+        if unknown_fields:
+            logger.warning(f"Ignoring unknown config field(s): {', '.join(unknown_fields)}")
+
+        return MonitoringConfig(**{
+            key: value for key, value in config_dict.items() if key in valid_fields
+        })
 
     # Create configuration object
     config = MonitoringConfig(
@@ -161,7 +178,10 @@ def parse_arguments() -> MonitoringConfig:
 def main():
     """Main entry point"""
     try:
-        # Check license before anything else
+        # Parse configuration before license validation so argparse help works.
+        config = parse_arguments()
+
+        # Check license before starting the monitor.
         license_path = AUTH_DIR / 'license.dat'
         license_manager = LicenseManager(license_file=str(license_path))
         is_valid, message = license_manager.validate_license()
@@ -172,9 +192,6 @@ def main():
             print("\nTo obtain a license, contact support with your Machine ID:")
             print(f"  {license_manager.get_machine_id()}")
             return 1
-
-        # Parse configuration
-        config = parse_arguments()
 
         logger.info("=== Enhanced Crowd Monitoring System ===")
         logger.info(f"Video source: {config.source}")
