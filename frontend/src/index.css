@@ -1,26 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Premium Minimalist Dark Theme */
-  --bg-base: #0a0d14;
-  --bg-surface: #11141e;
-  --bg-card: #171b26;
-  --bg-hover: #1e2333;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(99, 131, 255, 0.4);
+  /* Premium Professional Golden-Bluish Dark Theme */
+  --bg-base: #070b13;
+  --bg-surface: #0e1626;
+  --bg-card: #172237;
+  --bg-hover: #22304d;
+  --border: rgba(212, 175, 55, 0.12);
+  --border-focus: rgba(212, 175, 55, 0.4);
 
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
-  --text-dim: #4b5563;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #475569;
 
-  --accent: #5e7cf0;
-  --accent-muted: rgba(94, 124, 240, 0.1);
-  --accent-glow: rgba(94, 124, 240, 0.2);
+  --accent: #d4af37;
+  --accent-muted: rgba(212, 175, 55, 0.1);
+  --accent-glow: rgba(212, 175, 55, 0.18);
 
   --color-safe: #10b981;
-  --color-safe-bg: rgba(16, 185, 129, 0.1);
-  --color-warning: #f59e0b;
-  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-safe-bg: rgba(16, 185, 129, 0.08);
+  --color-warning: #e5c158;
+  --color-warning-bg: rgba(229, 193, 88, 0.08);
   --color-danger: #ef4444;
   --color-danger-bg: rgba(239, 68, 68, 0.1);
 
@@ -55,18 +55,18 @@ body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 @keyframes radar-sweep {
@@ -75,6 +75,6 @@ body {
 }
 
 @keyframes pulse-critical {
-  0%, 100% { border-color: var(--color-danger); box-shadow: 0 0 4px var(--color-danger); }
+  0%, 100% { border-color: var(--color-danger); box-shadow: 0 0 6px rgba(239, 68, 68, 0.25); }
   50% { border-color: transparent; box-shadow: none; }
 }
