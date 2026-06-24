@@ -127,6 +127,12 @@ class CameraCalibrator:
         Returns:
             Array of 4 calibration points or None
         """
+        if getattr(self.config, 'auto_calibration', False):
+            h, w = frame.shape[:2]
+            pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], dtype=np.float32)
+            logger.info(f"Auto-calibration: Using frame corners as points: {pts.tolist()}")
+            return pts
+
         clicked_points = []
         # Use list to allow modification in nested function (mutable container)
         scale_info = {'factor': 1.0}

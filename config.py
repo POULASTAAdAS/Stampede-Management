@@ -126,7 +126,7 @@ class MonitoringConfig:
     """Set to True to open the WebSocket and send requests to the backend."""
     websocket_log_flow: bool = True
     """Set to True to log the connection flow and debounced payload JSON."""
-    websocket_url: str = "ws://localhost:8080/ws-raw"
+    websocket_url: str = "ws://localhost:8085/ws-raw"
     """Raw WebSocket endpoint on the Spring Boot backend."""
     websocket_device_id: str = ""
     """Unique identifier for this device/camera. Defaults to hostname if empty."""

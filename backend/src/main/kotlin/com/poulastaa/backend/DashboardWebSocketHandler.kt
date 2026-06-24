@@ -54,8 +54,8 @@ class DashboardWebSocketHandler(
     override fun afterConnectionEstablished(session: WebSocketSession) {
         val safe = ConcurrentWebSocketSessionDecorator(
             session,
-            sendTimeLimit = 5_000,      // 5 s send timeout
-            bufferSizeLimit = 256 * 1024, // 256 KB buffer
+            5_000,      // 5 s send timeout
+            256 * 1024, // 256 KB buffer
         )
         sessions[session.id] = safe
         logger.info("[DASH CONNECT] sessionId={} remoteAddress={}", session.id, session.remoteAddress)
