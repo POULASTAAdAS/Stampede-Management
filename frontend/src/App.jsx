@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import {
-  Activity, Play, Square, Settings, AlertTriangle,
-  Volume2, VolumeX, Terminal, Users, Layers,
-  Wifi, WifiOff, Search, Grid, Map, Cpu,
-  Clock, Video, RefreshCw, Eye, Menu, X
+  Activity, AlertTriangle,
+  Volume2, VolumeX, Terminal, Users,
+  Search, Grid, Map, Cpu,
+  Clock, Video, RefreshCw, Menu, X
 } from 'lucide-react'
 import './App.css'
 import {
@@ -31,8 +31,8 @@ function App() {
   // Custom limits
   const [warningThreshold, setWarningThreshold] = useState(0.7) // 70% cell density
   const [criticalThreshold, setCriticalThreshold] = useState(0.9) // 90% cell density
-  const [gridRows, setGridRows] = useState(5)
-  const [gridCols, setGridCols] = useState(5)
+  const [gridRows] = useState(5)
+  const [gridCols] = useState(5)
 
   // Historical data for Sparklines (RoomId -> List of recent occupancy counts)
   const [history, setHistory] = useState({})
@@ -64,9 +64,13 @@ function App() {
       return
     }
 
+    const configuredWsUrl = import.meta.env.VITE_WS_URL
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = window.location.hostname || 'localhost'
-    const port = '8085'
-    const wsUrl = `ws://${host}:${port}/ws-dashboard`
+    const wsHost = host === 'localhost' || host === '127.0.0.1'
+      ? `${host}:9990`
+      : window.location.host
+    const wsUrl = configuredWsUrl || `${protocol}//${wsHost}/ws-dashboard`
 
     addLog(`Attempting WebSocket connection to ${wsUrl}...`, "system")
 
@@ -163,6 +167,8 @@ function App() {
         wsRef.current.close()
       }
     }
+    // Reconnect only when switching between simulator and live backend modes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSimulated])
 
   // --- Subscribe/Unsubscribe on Room selection change ---
@@ -231,6 +237,8 @@ function App() {
       mockTracks[r.roomId] = Array.from({ length: 8 }, (_, i) => createMockPerson(i + 1))
     })
 
+    // Demo mode needs to seed mock room state when the simulator starts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRooms(mockRoomTemplates.map(r => ({
       roomId: r.roomId,
       identifierType: 'DEVICE_ID',
@@ -324,11 +332,12 @@ function App() {
     return () => {
       clearInterval(simulatedTimerRef.current)
     }
+    // Simulator callbacks intentionally close over the selected room and thresholds for each run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSimulated, selectedRoomId, gridRows, gridCols, warningThreshold, criticalThreshold, isAudioMuted])
 
   // --- Helper to spawn a mock person coordinates ---
   function createMockPerson(id) {
-    const isSpecial = Math.random() < 0.2
     return {
       track_id: id,
       bounding_box: { x: 0, y: 0, width: 0, height: 0 },
@@ -501,32 +510,6 @@ function App() {
       (r.latestPayload?.device_info?.location || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
   }, [rooms, searchQuery])
-
-  // --- Overall statistics counts ---
-  const overallMetrics = useMemo(() => {
-    let totalPeople = 0
-    let alertRoomsCount = 0
-    let criticalRoomsCount = 0
-
-    rooms.forEach(r => {
-      const data = r.latestPayload?.population_data
-      if (data) {
-        totalPeople += data.current_count
-        if (data.alert_level === 'WARNING') alertRoomsCount++
-        if (data.alert_level === 'CRITICAL') {
-          criticalRoomsCount++
-          alertRoomsCount++
-        }
-      }
-    })
-
-    return {
-      totalPeople,
-      alertRoomsCount,
-      criticalRoomsCount,
-      totalRooms: rooms.length
-    }
-  }, [rooms])
 
   // Render glowing line charts for history
   const renderSparkline = (roomId) => {
