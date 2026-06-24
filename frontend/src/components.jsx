@@ -62,18 +62,21 @@ export const SidebarToggle = styled('button', {
   border: 'none',
   color: '$textMain',
   cursor: 'pointer',
-  padding: '4px',
+  padding: '6px',
   borderRadius: '$sm',
   transition: 'background 0.2s',
   '&:hover': {
     background: '$bgHover',
   },
+  '&:focus': {
+    outline: 'none',
+  },
   '@bp2': {
     display: 'block',
-    padding: '2px',
+    padding: '6px',
     '& svg': {
-      width: '14px !important',
-      height: '14px !important',
+      width: '16px !important',
+      height: '16px !important',
     },
   },
 });
@@ -165,41 +168,6 @@ export const StatusLabel = styled('span', {
   },
 });
 
-export const ToggleDemoBtn = styled('button', {
-  background: '$accentGlow',
-  color: '$textMain',
-  border: '1px solid $accent',
-  padding: '6px 12px',
-  fontSize: '10px',
-  borderRadius: '$md',
-  cursor: 'pointer',
-  fontWeight: 500,
-  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    background: '$bgHover',
-    transform: 'translateY(-1px)',
-  },
-  '&:active': {
-    transform: 'translateY(0)',
-  },
-  '@bp2': {
-    padding: '4px 8px',
-    fontSize: '9px',
-  },
-  '@bp3': {
-    padding: '3px 6px',
-    fontSize: '8px',
-  },
-  variants: {
-    active: {
-      true: {
-        background: '$accent',
-        boxShadow: '0 4px 12px rgba(94, 124, 240, 0.3)',
-      },
-    },
-  },
-});
-
 export const IconOnlyBtn = styled('button', {
   background: 'transparent',
   border: '1px solid $border',
@@ -216,6 +184,9 @@ export const IconOnlyBtn = styled('button', {
     color: '$textMain',
     background: '$bgHover',
     borderColor: '$textDim',
+  },
+  '&:active': {
+    transform: 'scale(0.92)',
   },
   '@bp2': {
     width: '24px',
@@ -240,6 +211,7 @@ export const IconOnlyBtn = styled('button', {
 export const DashboardBody = styled('div', {
   display: 'flex',
   flex: 1,
+  minHeight: 0,
   overflow: 'hidden',
   position: 'relative',
 });
@@ -252,6 +224,11 @@ export const SidebarBackdrop = styled('div', {
   zIndex: 998,
   backdropFilter: 'blur(8px)',
   animation: `${fadeIn} 0.2s cubic-bezier(0.4, 0, 0.2, 1)`,
+  '@bp2': {
+    position: 'fixed',
+    inset: '0 0 0 0',
+    zIndex: 1090,
+  },
 });
 
 export const Sidebar = styled('aside', {
@@ -264,13 +241,15 @@ export const Sidebar = styled('aside', {
   overflow: 'hidden',
   transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '@bp2': {
-    position: 'absolute',
-    top: '56px',
+    position: 'fixed',
+    top: 0,
     bottom: 0,
     left: 0,
-    zIndex: 999,
+    width: '100%',
+    height: '100%',
+    zIndex: 1100,
     transform: 'translateX(-100%)',
-    boxShadow: '8px 0 24px rgba(0, 0, 0, 0.3)',
+    borderRight: 'none',
   },
   variants: {
     open: {
@@ -337,6 +316,9 @@ export const RoomCard = styled('div', {
   '&:hover': {
     borderColor: '$textDim',
     transform: 'translateY(-1px)',
+  },
+  '&:active': {
+    transform: 'scale(0.97)',
   },
   variants: {
     selected: {
@@ -504,7 +486,7 @@ export const RadarSweepBeam = styled('div', {
   left: '50%',
   width: '150%',
   height: '150%',
-  background: 'conic-gradient(from 0deg, rgba(94, 124, 240, 0.1) 0deg, transparent 60deg, transparent 360deg)',
+  background: 'conic-gradient(from 0deg, rgba(212, 175, 55, 0.15) 0deg, transparent 60deg, transparent 360deg)',
   transformOrigin: '0% 0%',
   pointerEvents: 'none',
   animation: `${radarSweep} 8s linear infinite`,
