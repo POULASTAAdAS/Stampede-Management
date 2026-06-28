@@ -14,8 +14,8 @@ outputs are illustrative examples derived from the implemented payload schemas.
 
 Stampede Management is a crowd monitoring system designed to detect people from a live camera or video source, track
 them over time, estimate crowd density over a calibrated area, and send live monitoring data to a dashboard. The project
-combines a Python computer vision application, a Kotlin Spring Boot WebSocket backend, a React/Vite dashboard, and local
-configuration and licensing utilities.
+combines a Python computer vision application, a Kotlin Spring Boot WebSocket backend, a React/Vite web dashboard, a
+Kotlin Multiplatform Android/iOS dashboard client, and local configuration and licensing utilities.
 
 The central purpose of the system is to support early identification of unsafe crowd concentration. Instead of only
 counting people in a camera frame, the system maps detected people into a calibrated monitoring region and estimates
@@ -30,13 +30,14 @@ The current system consists of these main parts:
 | Configuration UI  | Tkinter GUI and native macOS SwiftUI launcher                                                                        | `config_gui.py`, `swift-ui/`                                                                                                                   |
 | Backend gateway   | Kotlin Spring Boot WebSocket service for raw monitoring ingestion and dashboard subscriptions                        | `backend/src/main/kotlin/com/poulastaa/backend/`                                                                                               |
 | Web dashboard     | React/Vite interface for rooms, live occupancy, radar-style positioning, density grid, and alerts                    | `frontend/src/`                                                                                                                                |
+| Mobile dashboards | Kotlin Multiplatform Android/iOS client for the same live room, occupancy, density, and tracked-person data          | `birdsEye/`                                                                                                                                    |
 | Licensing         | Offline, machine-tied license validation and activation                                                              | `auth/license_manager.py`, `generate_dev_license.py`                                                                                           |
 
 The report follows the requested root sections and focuses on the actual project implementation.
 
 **Diagram Placeholder 1: High-Level System Overview**  
 Aspect ratio: `16:9`  
-Suggested replacement: A block diagram showing camera input, Python monitor, backend, and dashboard.
+Suggested replacement: A block diagram showing camera input, Python monitor, backend, and web/mobile dashboards.
 
 Detailed ASCII version:
 
@@ -51,12 +52,12 @@ Detailed ASCII version:
                           | - Debounced WebSocket payload sender        |                     |
                           +---------------------------------------------+                     v
                                                                       +-----------------------------+
-                                                                      | React Dashboard             |
-                                                                      | - Room list                  |
-                                                                      | - Live metrics               |
-                                                                      | - Radar positioning          |
-                                                                      | - Density grid               |
-                                                                      | - Alert banner/audio         |
+                                                                      | Operator Dashboards         |
+                                                                      | - React web dashboard        |
+                                                                      | - birdsEye Android/iOS       |
+                                                                      | - Room list + live metrics   |
+                                                                      | - Radar + density grid       |
+                                                                      | - Alert status               |
                                                                       +-----------------------------+
 ```
 
@@ -80,9 +81,9 @@ with operational decision support.
 
 The current source code shows that the project is intended to run as a practical local monitoring application rather
 than only as an offline experiment. It has a command-line entry point, a Tkinter configuration GUI, a SwiftUI
-configuration launcher for macOS, license activation, OpenCV windows, live WebSocket sending, a backend service, and a
-browser dashboard. These parts indicate that the system is meant to move from raw frame processing to live
-operator-facing monitoring.
+configuration launcher for macOS, license activation, OpenCV windows, live WebSocket sending, a backend service, a
+browser dashboard, and Android/iOS dashboard clients. These parts indicate that the system is meant to move from raw
+frame processing to live operator-facing monitoring.
 
 ### 1.2 Project Scope
 
@@ -101,6 +102,7 @@ The scope of the current project includes the following tasks:
 | Remote data transport   | Yes, WebSocket payloads in `websocket_sender.py`                         |
 | Backend routing         | Yes, Spring Boot WebSocket handlers under `backend/`                     |
 | Dashboard visualization | Yes, React components under `frontend/src/`                              |
+| Mobile dashboard client | Yes, Kotlin Multiplatform Android/iOS client under `birdsEye/`           |
 | Licensing               | Yes, local hardware-tied license validation in `auth/license_manager.py` |
 
 The project scope does not currently include a database-backed analytics system, a complete production security model, a
@@ -121,6 +123,7 @@ The main source areas inspected are:
 | `auth/`                    | Understand license generation, validation, and activation behavior                 |
 | `backend/src/main/kotlin/` | Understand WebSocket endpoints, room registry, and backend message flow            |
 | `frontend/src/`            | Understand dashboard state, components, and rendering assumptions                  |
+| `birdsEye/`                | Understand Android/iOS dashboard client, shared Compose UI, and Ktor WebSocket use |
 | `swift-ui/`                | Understand native macOS configuration launcher behavior                            |
 | Build and config files     | Understand dependencies, ports, runtime defaults, and packaging constraints        |
 
@@ -139,6 +142,7 @@ From the current implementation, the main contributions of the project can be st
 | Live monitoring transport  | Python payloads are sent to a backend through WebSocket and then distributed to dashboard clients                       |
 | Multi-surface operation    | The project can be started from CLI, Tkinter GUI, or SwiftUI configuration launcher                                     |
 | Room-based dashboard model | Backend creates logical rooms from device ID or MAC address and supports dashboard subscription                         |
+| Cross-platform dashboard   | React web and birdsEye Android/iOS clients consume the same backend dashboard room protocol                             |
 | Source-level extensibility | Detection, tracking, occupancy, transport, and visualization are in separate modules                                    |
 
 These contributions are implementation contributions. They show how the project is built and what it currently supports.
@@ -180,13 +184,13 @@ The problem addressed by this project is:
 
 ### 2.2 Main Actors
 
-| Actor                        | Role in the system                                                                            |
-|------------------------------|-----------------------------------------------------------------------------------------------|
-| Monitoring operator          | Starts/stops monitoring, selects camera/video source, views alerts and density visualizations |
-| Python monitoring device     | Captures frames, performs detection/tracking, computes occupancy, sends payloads              |
-| Backend gateway              | Receives monitoring payloads, groups them by device/room, distributes updates                 |
-| Dashboard user               | Observes rooms, live population count, density grid, tracked persons, and alert status        |
-| Administrator/license issuer | Generates or supplies machine-specific license data                                           |
+| Actor                        | Role in the system                                                                               |
+|------------------------------|--------------------------------------------------------------------------------------------------|
+| Monitoring operator          | Starts/stops monitoring, selects camera/video source, views alerts and density visualizations    |
+| Python monitoring device     | Captures frames, performs detection/tracking, computes occupancy, sends payloads                 |
+| Backend gateway              | Receives monitoring payloads, groups them by device/room, distributes updates                    |
+| Dashboard user               | Uses browser or mobile dashboards to observe rooms, population, density grid, tracks, and alerts |
+| Administrator/license issuer | Generates or supplies machine-specific license data                                              |
 
 ### 2.3 Functional Requirements Identified From Source
 
@@ -203,17 +207,19 @@ The problem addressed by this project is:
 | Send monitoring data                           | `websocket_sender.py` builds JSON payloads and sends them with debounce                                                         |
 | Receive and distribute monitoring data         | Backend `/ws-raw` accepts raw payloads and `/ws-dashboard` serves dashboard subscriptions                                       |
 | Visualize remote monitoring data               | `frontend/src/App.jsx` and components render room list, metrics, density grid, radar map, and tracked table                     |
+| Visualize remote monitoring data on mobile     | `birdsEye/shared/src/commonMain/` renders the same room, metric, density, and tracked-person concepts                           |
 | Validate license before use                    | `main.py`, `config_gui.py`, and Swift UI call `auth/license_manager.py` validation                                              |
 
 ### 2.4 Non-Functional Requirements Evident in Code
 
-| Concern              | Current behavior                                                                       |
-|----------------------|----------------------------------------------------------------------------------------|
-| Real-time processing | Detection can run every `N` frames using `detect_every`; FPS counter is maintained     |
-| Resilience           | DeepSort falls back to centroid tracking if unavailable; WebSocket sender reconnects   |
-| Configurability      | CLI arguments, JSON config, Tkinter GUI, and SwiftUI launcher configure runtime values |
-| Remote visibility    | WebSocket dashboard endpoint broadcasts room lists and room updates                    |
-| Local operation      | License validation is local/offline; monitor can run from CLI or local UI              |
+| Concern               | Current behavior                                                                       |
+|-----------------------|----------------------------------------------------------------------------------------|
+| Real-time processing  | Detection can run every `N` frames using `detect_every`; FPS counter is maintained     |
+| Resilience            | DeepSort falls back to centroid tracking if unavailable; WebSocket sender reconnects   |
+| Configurability       | CLI arguments, JSON config, Tkinter GUI, and SwiftUI launcher configure runtime values |
+| Remote visibility     | WebSocket dashboard endpoint broadcasts room lists and room updates                    |
+| Cross-platform access | Browser, Android, and iOS dashboard clients can consume the live dashboard endpoint    |
+| Local operation       | License validation is local/offline; monitor can run from CLI or local UI              |
 
 ### 2.5 Constraints and Observed Gaps
 
@@ -226,11 +232,13 @@ The implementation has important constraints:
 | Backend room registry is in memory                                            | Room state disappears when backend restarts and cannot scale across instances without shared storage                                    |
 | Backend WebSocket origins are unrestricted                                    | Production deployment needs authentication and origin restrictions                                                                      |
 | Frontend density grid is fixed at 5x5                                         | Payloads with other grid sizes may not be fully represented in the current UI                                                           |
+| Mobile dashboard clients lack separate authentication                         | The Android/iOS client uses the same dashboard WebSocket stream and needs production access control                                     |
+| Mobile position map uses fixed coordinate normalization                       | `birdsEye` clamps positions to an 800x600 coordinate model and inherits the current `world_x/world_y` limitation                        |
 | Automated tests are limited                                                   | No complete automated verification was found for detection accuracy, calibration correctness, frontend UI, or end-to-end WebSocket flow |
 
 **Diagram Placeholder 2: Problem Domain and Data Movement**  
 Aspect ratio: `4:3`  
-Suggested replacement: A diagram showing crowd area, camera, monitoring client, backend, and operator dashboard.
+Suggested replacement: A diagram showing crowd area, camera, monitoring client, backend, and operator dashboards.
 
 Detailed ASCII version:
 
@@ -257,7 +265,7 @@ Detailed ASCII version:
                   | local overlay and siren                              | room_update
                   v                                                      v
        +---------------------+                                  +------------------+
-       | Local Operator View |                                  | Web Dashboard    |
+       | Local Operator View |                                  | Dashboards       |
        +---------------------+                                  +------------------+
 ```
 
@@ -318,6 +326,7 @@ The system produces several kinds of output:
 | Backend response       | Accepted or rejected JSON response from `/ws-raw`                                           |
 | Dashboard messages     | `room_list`, `subscribed`, `room_update`, and `error` messages                              |
 | Frontend visual output | Room cards, metrics, radar map, density grid, alert banner, and tracked table               |
+| Mobile visual output   | birdsEye Android/iOS rooms, summary metrics, position map, density grid, and tracked list   |
 
 The most important output is the relationship between occupancy and alert state. The dashboard and local monitor both
 use this information to communicate whether the monitored region is normal, approaching capacity, or critical.
@@ -326,21 +335,22 @@ use this information to communicate whether the monitored region is normal, appr
 
 The following table connects major project requirements to source modules:
 
-| Requirement                | Primary implementation         | Secondary implementation                    |
-|----------------------------|--------------------------------|---------------------------------------------|
-| Start the monitor          | `main.py`                      | `config_gui.py`, `swift-ui/`                |
-| Check license              | `auth/license_manager.py`      | `main.py`, `config_gui.py`, Swift services  |
-| Load configuration         | `main.py`, `config.py`         | `system_conf.json`, GUI save/load           |
-| Read video                 | `monitor.py`                   | OpenCV backend handling                     |
-| Detect people              | `detector.py`                  | YOLO dependency in `requirements.txt`       |
-| Track detections           | `trackers.py`                  | DeepSort optional dependency                |
-| Calibrate monitoring plane | `calibration.py`               | `geometry.py`                               |
-| Compute occupancy          | `occupancy.py`                 | `geometry.py`, Shapely                      |
-| Render local view          | `visualizer.py`                | `window_utils.py`                           |
-| Send payload               | `websocket_sender.py`          | Backend `/ws-raw`                           |
-| Register/update rooms      | `RoomRegistry.kt`              | `RawMonitoringWebSocketHandler.kt`          |
-| Serve dashboard clients    | `DashboardWebSocketHandler.kt` | React `App.jsx`                             |
-| Render dashboard           | `frontend/src/App.jsx`         | Components under `frontend/src/components/` |
+| Requirement                | Primary implementation                                                 | Secondary implementation                           |
+|----------------------------|------------------------------------------------------------------------|----------------------------------------------------|
+| Start the monitor          | `main.py`                                                              | `config_gui.py`, `swift-ui/`                       |
+| Check license              | `auth/license_manager.py`                                              | `main.py`, `config_gui.py`, Swift services         |
+| Load configuration         | `main.py`, `config.py`                                                 | `system_conf.json`, GUI save/load                  |
+| Read video                 | `monitor.py`                                                           | OpenCV backend handling                            |
+| Detect people              | `detector.py`                                                          | YOLO dependency in `requirements.txt`              |
+| Track detections           | `trackers.py`                                                          | DeepSort optional dependency                       |
+| Calibrate monitoring plane | `calibration.py`                                                       | `geometry.py`                                      |
+| Compute occupancy          | `occupancy.py`                                                         | `geometry.py`, Shapely                             |
+| Render local view          | `visualizer.py`                                                        | `window_utils.py`                                  |
+| Send payload               | `websocket_sender.py`                                                  | Backend `/ws-raw`                                  |
+| Register/update rooms      | `RoomRegistry.kt`                                                      | `RawMonitoringWebSocketHandler.kt`                 |
+| Serve dashboard clients    | `DashboardWebSocketHandler.kt`                                         | React `App.jsx`                                    |
+| Render dashboard           | `frontend/src/App.jsx`                                                 | Components under `frontend/src/components/`        |
+| Render mobile dashboard    | `birdsEye/shared/src/commonMain/kotlin/org/poulastaa/birds_eye/App.kt` | Android `MainActivity.kt`, iOS `ContentView.swift` |
 
 ### 2.10 Failure Mode Analysis
 
@@ -431,23 +441,25 @@ Raw detection and tracking can fluctuate between frames. The project smooths occ
 and avoids instant alert flicker by requiring overcapacity to persist for a configured hysteresis duration. This design
 reduces noise in real-time alerts.
 
-### 3.6 WebSocket-Based Live Dashboard
+### 3.6 WebSocket-Based Live Dashboards
 
-WebSockets are used because monitoring data changes continuously and should be pushed to the dashboard without repeated
-HTTP polling. The backend exposes `/ws-raw` for monitoring payload ingestion and `/ws-dashboard` for dashboard clients.
+WebSockets are used because monitoring data changes continuously and should be pushed to dashboard clients without
+repeated HTTP polling. The backend exposes `/ws-raw` for monitoring payload ingestion and `/ws-dashboard` for web and
+mobile dashboard clients.
 
 ### 3.7 Relationship Between Literature Concepts and This Project
 
 The concepts above are not used in isolation. The implementation combines them into one practical pipeline. Object
 detection supplies bounding boxes. Tracking gives temporal continuity. Homography connects the image plane to an
 approximate ground plane. Polygon-grid intersection estimates local occupancy. EMA and hysteresis reduce instability.
-WebSockets publish the processed state to the dashboard. This layered combination is common in applied real-time
+WebSockets publish the processed state to dashboard clients. This layered combination is common in applied real-time
 monitoring because raw model predictions alone are not enough for an operator-facing system.
 
 The important point for this project is that each technique is used in a restricted and understandable way. YOLO is used
 only for the person class. The centroid tracker is a direct nearest-distance method. The homography maps four image
 points to a rectangle. The occupancy grid divides the calibrated plane into equal cell sizes. The backend uses room IDs
-derived from device ID or MAC address. The dashboard subscribes to one selected room and renders the latest payload.
+derived from device ID or MAC address. A dashboard client subscribes to one selected room and renders the latest
+payload.
 These decisions make the system easier to inspect and explain in an academic report.
 
 ### 3.8 Object Detection in the Project Context
@@ -521,7 +533,7 @@ This behavior is important for a human operator. A monitoring dashboard should n
 critical because of detector jitter. At the same time, too much smoothing or too long a hysteresis interval can delay
 alerts. The project exposes these values in configuration so the behavior can be tuned for the monitored environment.
 
-### 3.13 Backend and Dashboard in the Project Context
+### 3.13 Backend, Web Dashboard, and Mobile Clients in the Project Context
 
 The backend follows a simple message gateway pattern. It does not interpret video or run computer vision. Its job is to
 receive raw monitoring snapshots, normalize alert fields, store the latest payload per room, and broadcast updates to
@@ -532,6 +544,12 @@ The React dashboard is designed around the idea of live telemetry. It maintains 
 status, history for sparklines, selected track, and audio alert state. It renders the latest payload rather than
 requesting static pages. This is consistent with WebSocket-based monitoring, where the important information is the
 current state and recent changes.
+
+The Android and iOS client under `birdsEye/` applies the same dashboard concept through Kotlin Multiplatform and Compose
+Multiplatform. Its shared code parses the same backend room messages and presents rooms, summary metrics, a position
+map,
+a density grid, and tracked-person details. Platform-specific code is limited mainly to app entry points and Ktor
+WebSocket engines.
 
 ### 3.14 Summary of Review
 
@@ -892,9 +910,9 @@ mac:<normalized_mac_address>
 The room registry increments `messageCount`, updates `lastSeenAt`, stores the latest payload, and notifies listeners.
 This is enough for a live dashboard but not enough for historical analytics.
 
-### 4.17 Dashboard Subscription Algorithm
+### 4.17 Dashboard Client Subscription Algorithm
 
-The dashboard flow is:
+The web and mobile dashboard client flow is:
 
 ```text
 Open WebSocket connection
@@ -924,6 +942,7 @@ A simplified complexity view helps explain runtime behavior:
 | Visualization        | Frame size, number of tracks, grid size, display mode                     |
 | WebSocket sending    | Debounce interval, payload size, backend connectivity                     |
 | Dashboard rendering  | Number of rooms, grid cells, tracked persons, update rate                 |
+| Mobile client render | Compose layout size, number of rooms, grid cells, and tracked persons     |
 
 The implementation controls runtime cost through `detect_every`, model image size, grid size, display resizing, FPS
 counter window, and WebSocket debounce interval.
@@ -955,7 +974,8 @@ multiple monitoring devices to appear as separate dashboard rooms using device I
 | Multiple tracking options | Centroid tracking works as a fallback; DeepSort can be enabled when available                |
 | Spatial alerting          | Alerts are based on grid cell capacity rather than only total people count                   |
 | Debounced backend sending | `WebSocketSender` sends the latest staged payload at configured intervals                    |
-| Remote dashboard support  | Backend and frontend support live room updates over WebSockets                               |
+| Remote dashboard support  | Backend, web frontend, and birdsEye client support live room updates over WebSockets         |
+| Mobile dashboard support  | birdsEye reuses the dashboard protocol on Android and iOS through shared Compose code        |
 
 ### 5.3 Limitations
 
@@ -968,6 +988,7 @@ multiple monitoring devices to appear as separate dashboard rooms using device I
 | No persistent backend storage        | Rooms and latest payloads are stored in memory only                                                          |
 | Limited dashboard grid flexibility   | The frontend currently uses fixed `gridRows=5` and `gridCols=5`                                              |
 | Security hardening needed            | Backend WebSocket endpoints allow all origins and do not authenticate clients                                |
+| Mobile app hardening needed          | birdsEye has no separate login, notification policy, or production access-control layer                      |
 | Limited automated testing            | Source inspection found no comprehensive end-to-end test suite for the full monitoring pipeline              |
 
 ### 5.4 Risk Discussion
@@ -1061,6 +1082,10 @@ The density grid gives a useful overview of cell alert levels. The current React
 column state, so it should be updated before using arbitrary grid sizes. This is a good example of a frontend-backend
 contract issue: the payload contains rows and columns, but the UI currently does not fully derive its layout from them.
 
+The birdsEye mobile dashboard already reads `rows` and `cols` when laying out its shared Compose density grid, but its
+position map still normalizes coordinates against an 800x600 model. Therefore, it inherits the same coordinate
+interpretation caution as the web radar map until calibrated positions are provided by the monitoring payload.
+
 ### 5.12 Ethical and Safety Discussion
 
 Crowd monitoring software can support safety, but it also introduces responsibility. Even if the backend does not
@@ -1075,9 +1100,9 @@ procedures remain necessary.
 
 The project is technically coherent and useful as an integrated monitoring prototype. Its strongest part is the
 end-to-end connection between computer vision and live dashboard delivery. Its most important weaknesses are spatial
-accuracy limitations, simple backend state, limited frontend grid flexibility, and lack of full production security.
-These weaknesses are not unusual for a project at this stage, but they must be documented honestly in a master-level
-report.
+accuracy limitations, simple backend state, limited frontend grid flexibility, mobile app hardening, and lack of full
+production security. These weaknesses are not unusual for a project at this stage, but they must be documented honestly
+in a master-level report.
 
 ## 6. Implementation Details
 
@@ -1207,7 +1232,29 @@ Main frontend components:
 | `DensityGrid`  | `frontend/src/components/DensityGrid.jsx`  | Cell density visualization                    |
 | `TrackedTable` | `frontend/src/components/TrackedTable.jsx` | Detailed tracked-person rows                  |
 
-### 6.9 Licensing and Activation
+### 6.9 Android and iOS Dashboard Clients
+
+The Android and iOS dashboard client lives under `birdsEye/`. It is a Kotlin Multiplatform project named `birdsEye` that
+uses shared Compose Multiplatform code for the operator-facing dashboard UI and platform-specific entry points for
+Android and iOS.
+
+| Mobile item                 | Current behavior                                                                                             |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------|
+| Shared UI                   | `birdsEye/shared/src/commonMain/kotlin/org/poulastaa/birds_eye/App.kt` renders the dashboard                 |
+| Shared state and protocol   | `DashboardStore.kt` and `DashboardModels.kt` parse `room_list`, `room_update`, and `error` messages          |
+| Default dashboard WebSocket | `wss://stamped.poulastaa.dev/ws-dashboard` from `DefaultDashboardWsUrl`                                      |
+| Android entry point         | `androidApp/src/main/kotlin/org/poulastaa/birds_eye/MainActivity.kt` calls `App()`                           |
+| Android permission          | `androidApp/src/main/AndroidManifest.xml` declares `android.permission.INTERNET`                             |
+| iOS entry point             | `iosApp/iosApp/ContentView.swift` wraps the shared `MainViewController()` from the generated `Shared` module |
+| Platform WebSocket engines  | Android uses Ktor OkHttp; iOS uses Ktor Darwin with cellular access allowed                                  |
+| Reconnection behavior       | `DashboardStore` reconnects in a coroutine loop after a five-second delay                                    |
+
+The shared mobile UI includes wide and compact layouts, room search, room cards, summary tiles, room details, metric
+cards, a position map, a density grid, and tracked-person rows. This makes the mobile client a dashboard consumer rather
+than a monitoring device: it does not capture video or run detection, but it subscribes to the same backend room stream
+as the React web dashboard.
+
+### 6.10 Licensing and Activation
 
 `auth/license_manager.py` implements local license validation. The machine ID is derived from MAC address, hostname, and
 username using SHA-256 and truncated to 32 characters. License data is signed with HMAC-SHA256 using an embedded secret
@@ -1224,7 +1271,7 @@ Validation checks:
 The CLI uses `auth/license.dat`. The Tkinter GUI and SwiftUI launcher also validate license status before allowing
 normal monitor use.
 
-### 6.10 Technology Stack
+### 6.11 Technology Stack
 
 | Area                            | Technology found in source                              |
 |---------------------------------|---------------------------------------------------------|
@@ -1234,9 +1281,10 @@ normal monitor use.
 | Monitoring transport            | `websocket-client` in Python                            |
 | Backend                         | Kotlin, Spring Boot, Java 17, WebSocket, Jackson Kotlin |
 | Frontend                        | React 19, Vite, Stitches, Lucide icons                  |
+| Mobile dashboard                | Kotlin Multiplatform, Compose Multiplatform, Ktor       |
 | Native macOS config UI          | SwiftUI, macOS 13 target                                |
 
-### 6.11 Configuration Model in Detail
+### 6.12 Configuration Model in Detail
 
 The configuration model is centralized in `MonitoringConfig` in `config.py`. This dataclass acts as the contract between
 the CLI, GUI launchers, monitor runtime, detector, tracker, occupancy module, visualizer, and WebSocket sender. The use
@@ -1266,7 +1314,7 @@ The CLI parser in `main.py` supports both direct command-line options and a JSON
 file is used, unknown keys are ignored with a warning. This behavior is useful when configuration files include fields
 from older or newer versions, but it also means operators should verify that expected keys are actually applied.
 
-### 6.12 Startup Lifecycle
+### 6.13 Startup Lifecycle
 
 The startup lifecycle is sequential and defensive. The monitor does not enter the processing loop until key requirements
 are satisfied.
@@ -1292,7 +1340,7 @@ height, and geometry processor. The tracker can be initialized before or after c
 implementation it is initialized after the grid. The visualizer needs camera dimensions from the opened video source.
 The WebSocket sender is started only after the core monitoring components are ready.
 
-### 6.13 Video Capture Implementation
+### 6.14 Video Capture Implementation
 
 The video capture logic is implemented in `monitor.py`. Numeric string sources are converted to integer camera indexes.
 Non-numeric strings remain as paths or stream addresses. On macOS, the project attempts to use the native AVFoundation
@@ -1307,7 +1355,7 @@ The monitor also reads a calibration frame separately. For camera sources, it ma
 warm-up. It checks brightness and contrast before accepting a frame. This is a practical detail because many webcams
 initially return black or unstable frames.
 
-### 6.14 Detector Loading and Model Resolution
+### 6.15 Detector Loading and Model Resolution
 
 `detector.py` includes resource-path resolution for different runtime modes. In development, it uses the project root.
 In a PyInstaller bundle, it checks `_MEIPASS`. It also checks a packaged Windows model layout under
@@ -1322,7 +1370,7 @@ Detection returns plain lists rather than custom classes. Each detection is `[x1
 format is consumed by both tracker implementations. The advantage is low coupling. The disadvantage is that the code
 relies on positional list indexes, so future extensions must be careful when adding fields.
 
-### 6.15 Tracker Implementation Details
+### 6.16 Tracker Implementation Details
 
 The centroid tracker stores active tracks in a dictionary keyed by track ID. The next available ID is stored in
 `next_id`. Each track is a `TrackData` dataclass from `config.py`. It contains `track_id`, `bbox`, `world_position`,
@@ -1338,7 +1386,7 @@ confidence, and class label. It also filters out unconfirmed tracks when the tra
 DeepSort raises an error during update, the wrapper logs the error and returns an empty list. This prevents one tracker
 failure from crashing the whole monitor loop, but it may temporarily remove active tracks.
 
-### 6.16 Calibration UI and Geometry Data
+### 6.17 Calibration UI and Geometry Data
 
 The calibration module allows the user to click four points. The points are expected to represent the corners of the
 monitored area. The source includes visual feedback such as point circles, outlines, connecting lines, and instruction
@@ -1354,7 +1402,7 @@ The geometry processor is intentionally small. It provides two core operations:
 The separation is useful because calibration creates the matrices, while geometry uses them. If future work adds saved
 calibration profiles or alternative calibration techniques, the geometry processor could remain mostly unchanged.
 
-### 6.17 Occupancy Grid Implementation Details
+### 6.18 Occupancy Grid Implementation Details
 
 The occupancy grid stores three arrays with the same shape: smoothed counts, timers, and notification flags. The shape
 is `(grid_rows, grid_cols)`. These arrays are initialized when the grid is created and reset when grid dimensions are
@@ -1376,7 +1424,7 @@ The use of fractional contributions makes the occupancy output smoother than a h
 means cell counts can be decimal values. The dashboard rounds some values for display, but the payload can contain
 fractional `occupant_count` values.
 
-### 6.18 Audio Alert Implementation
+### 6.19 Audio Alert Implementation
 
 The Python occupancy module includes platform-specific audio behavior. On macOS, it creates a temporary WAV file
 containing a siren-like sweep and plays it with `afplay`. It then uses the `say` command to announce that crowd density
@@ -1386,7 +1434,7 @@ The code uses a flag `_audio_alert_running` so that multiple alert triggers do n
 alert sound runs in a daemon thread to avoid blocking the main video processing loop. This is important because audio
 playback should not pause detection, tracking, or visualization.
 
-### 6.19 Visualizer Implementation Details
+### 6.20 Visualizer Implementation Details
 
 The visualizer draws several kinds of information. It can draw the calibrated grid over the camera image, draw track
 annotations, draw cell occupancy labels, create a bird's-eye view, generate an occupancy heatmap, and create an
@@ -1400,7 +1448,7 @@ inspect bounding boxes. A monitoring view combines tracks and occupancy. A split
 The monitor also resizes display frames to fit screen limits. This avoids windows becoming too large for the user's
 display. The screen-size detection includes macOS-specific AppKit and AppleScript attempts, then other fallbacks.
 
-### 6.20 WebSocket Sender Implementation Details
+### 6.21 WebSocket Sender Implementation Details
 
 The sender is built around a background connection loop and a debounce timer. When backend requests are enabled, it
 starts a daemon thread with `WebSocketApp`. The loop reconnects after failures while `_running` is true. The connection
@@ -1414,7 +1462,7 @@ backend load.
 The sender can also operate in log-only mode when request sending is disabled. This is useful for development and
 debugging. In that mode, payload flow can be logged without needing a backend connection.
 
-### 6.21 Raw Backend Handler Details
+### 6.22 Raw Backend Handler Details
 
 The raw backend handler receives text messages at `/ws-raw`. It parses the message as JSON. If parsing fails, it sends a
 rejected response with reason `invalid_json`. It then normalizes monitoring alert state, extracts room identity, and
@@ -1428,7 +1476,7 @@ The handler also performs alert normalization. This is an implementation safegua
 stale alert labels. The backend recalculates the grid-level alert from cell alert levels and cell densities. If a cell
 says `CRITICAL` but density is below `1.0`, it is downgraded. This adds consistency before dashboard display.
 
-### 6.22 Room Registry Details
+### 6.23 Room Registry Details
 
 `RoomRegistry` is a service with concurrent maps. It stores room metadata and latest payloads. When a payload arrives,
 it either creates a new `Room` or updates an existing one. Existing rooms get a new `lastSeenAt` and incremented
@@ -1441,7 +1489,7 @@ ingestion and dashboard broadcasting.
 The registry sorts rooms by `roomId` when listing them. This gives deterministic room order. However, the registry has
 no expiration policy. If a device sends one payload and then disappears, the room remains until backend restart.
 
-### 6.23 Dashboard Handler Details
+### 6.24 Dashboard Handler Details
 
 The dashboard handler wraps sessions in `ConcurrentWebSocketSessionDecorator` with a five-second send timeout and a 256
 KB buffer. This protects the server from some slow-client behavior. It stores sessions by ID and tracks subscriptions by
@@ -1455,7 +1503,7 @@ This design is convenient because a dashboard can always show current room metad
 create broad room-list traffic. For a small number of rooms this is simple and acceptable. For a larger deployment, the
 backend may need more selective updates.
 
-### 6.24 Frontend State Management Details
+### 6.25 Frontend State Management Details
 
 The React application stores room list, selected room ID, search query, connection state, radar animation state, audio
 mute state, selected track ID, sidebar state, loading state, and history. The WebSocket is stored in a ref so it can be
@@ -1469,7 +1517,7 @@ The dashboard includes audio behavior for critical alerts. Browser audio require
 UI asks whether critical siren audio should be enabled. If enabled, the frontend can play a siren tone and use speech
 synthesis for critical room alerts. It can also warn when a selected track is inside a warning or critical cell.
 
-### 6.25 Frontend Rendering Details
+### 6.26 Frontend Rendering Details
 
 The frontend renders several data views from the active room payload.
 
@@ -1486,7 +1534,7 @@ The dashboard has a strong visual identity, but there are technical assumptions.
 coordinate space. The density grid uses fixed row and column state. These assumptions should be aligned with real
 payload dimensions in future work.
 
-### 6.26 Tkinter Configuration GUI
+### 6.27 Tkinter Configuration GUI
 
 The Tkinter GUI in `config_gui.py` provides a local configuration surface. It checks license status before showing the
 full configuration UI. It includes tabs for video source, grid/spatial settings, detection, tracking, smoothing/alerts,
@@ -1501,7 +1549,7 @@ The GUI currently preserves WebSocket metadata from the loaded config and forces
 collecting config from the UI. This is important for report accuracy because the UI does not expose every WebSocket
 field as a normal tab.
 
-### 6.27 SwiftUI Configuration App
+### 6.28 SwiftUI Configuration App
 
 The SwiftUI app under `swift-ui/` is a native macOS replacement or companion for the Python configuration UI. It targets
 macOS 13 and uses Swift tools 6. It locates the project directory by checking `STAMPEDE_APP_DIR` or climbing directories
@@ -1516,7 +1564,7 @@ The Swift app uses Python snippets to interact with the existing license manager
 logic in Swift. It launches the monitor as an external Python process with a temporary JSON config file and cleans up
 after exit.
 
-### 6.28 Licensing Implementation Details
+### 6.29 Licensing Implementation Details
 
 The licensing implementation is local and hardware-tied. It uses a machine ID generated from MAC address, hostname, and
 username. A license contains machine ID, MAC address, username, customer name, creation time, expiry time, validity
@@ -1529,24 +1577,26 @@ embedded signing secret also means the scheme should not be treated as high-secu
 attacker. It is sufficient for controlled local activation in the current project context, but production licensing
 would require stronger key management.
 
-### 6.29 Dependency and Runtime Requirements
+### 6.30 Dependency and Runtime Requirements
 
 The Python requirements include OpenCV, NumPy, Ultralytics, Shapely, WebSocket client, and optional DeepSort. NumPy
 versions are constrained by Python version markers. This indicates the project is intended to work across different
 Python versions without installing incompatible NumPy releases.
 
-The backend uses Java 17 and Gradle with Kotlin and Spring Boot plugins. The frontend uses Vite and React. The SwiftUI
-app has no external Swift package dependency in its package manifest. These choices make each subsystem independently
-understandable, but they also mean development setup requires multiple toolchains.
+The backend uses Java 17 and Gradle with Kotlin and Spring Boot plugins. The frontend uses Vite and React. The birdsEye
+mobile client uses Gradle, Kotlin Multiplatform, Compose Multiplatform, Ktor, Android tooling, and an Xcode iOS entry
+project. The SwiftUI app has no external Swift package dependency in its package manifest. These choices make each
+subsystem independently understandable, but they also mean development setup requires multiple toolchains.
 
 | Subsystem        | Toolchain needed                                                |
 |------------------|-----------------------------------------------------------------|
 | Python monitor   | Python environment with OpenCV, YOLO, Shapely, WebSocket client |
 | Backend          | Java 17 and Gradle wrapper                                      |
 | Frontend         | Node/npm or compatible JavaScript package manager               |
+| Mobile dashboard | Gradle wrapper, Android SDK for Android, Xcode for iOS          |
 | SwiftUI launcher | Swift toolchain on macOS                                        |
 
-### 6.30 Implementation Quality Observations
+### 6.31 Implementation Quality Observations
 
 The project shows several good engineering practices:
 
@@ -1557,6 +1607,7 @@ The project shows several good engineering practices:
 | Configurable behavior  | Many runtime values are exposed through `MonitoringConfig`                                        |
 | Platform awareness     | macOS camera backend, SwiftUI launcher, display-size handling                                     |
 | Structured payloads    | WebSocket payload dataclasses define clear output shape                                           |
+| Cross-platform client  | birdsEye shares dashboard UI, protocol models, and state flow across Android and iOS              |
 | Source-level comments  | Several modules explain purpose and parameters                                                    |
 
 There are also areas for improvement:
@@ -1568,15 +1619,16 @@ There are also areas for improvement:
 | Security                 | Backend allows all origins and lacks authentication                         |
 | Coordinate naming        | Payload `world_x/world_y` currently receive image centroid values           |
 | Frontend layout contract | Dashboard should derive grid size from payload rows and cols                |
+| Mobile app verification  | birdsEye needs more protocol, UI, and real-device testing                   |
 | Persistence              | Backend should persist history if analytics or restart recovery is required |
 
-### 6.31 Implementation Summary
+### 6.32 Implementation Summary
 
 The implementation is a multi-component system rather than a single script. The Python monitor performs the core
-real-time analysis. The backend converts device payloads into dashboard rooms. The frontend provides operator-facing
-visual telemetry. The configuration UIs make the monitor easier to run. Licensing controls local access. Together, these
-pieces form a complete applied project suitable for a master-level report, provided that limitations and future work are
-stated clearly.
+real-time analysis. The backend converts device payloads into dashboard rooms. The web and mobile dashboards provide
+operator-facing visual telemetry. The configuration UIs make the monitor easier to run. Licensing controls local access.
+Together, these pieces form a complete applied project suitable for a master-level report, provided that limitations and
+future work are stated clearly.
 
 **Diagram Placeholder 4: Implementation Architecture**  
 Aspect ratio: `16:9`  
@@ -1587,8 +1639,8 @@ Detailed ASCII version:
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ Presentation Layer                                                           │
-│  config_gui.py     swift-ui/      visualizer.py      frontend/src            │
-│  Tkinter UI       SwiftUI UI      OpenCV windows     React dashboard         │
+│  config_gui.py     swift-ui/      visualizer.py      frontend/src   birdsEye/│
+│  Tkinter UI       SwiftUI UI      OpenCV windows     Web + mobile dashboards │
 └──────────────────────────────────────────────────────────────────────────────┘
                                       │
 ┌─────────────────────────────────────▼────────────────────────────────────────┐
@@ -1688,8 +1740,9 @@ dashboard subscribers.
 
 ### 7.10 Step 10: Display on Dashboard
 
-The dashboard connects to `/ws-dashboard`, requests room list, subscribes to a selected room, receives `room_update`
-events, and updates live metrics and visualizations.
+The browser dashboard or birdsEye mobile client connects to `/ws-dashboard`, requests room list, subscribes to a
+selected
+room, receives `room_update` events, and updates live metrics and visualizations.
 
 ### 7.11 End-to-End Scenario: Normal Monitoring Session
 
@@ -1698,8 +1751,8 @@ from the CLI, Tkinter GUI, or SwiftUI launcher. The monitor loads the model and 
 calibration by selecting the four corners of the monitored region. After calibration, the monitor enters the live loop.
 
 During a normal session, the local OpenCV window displays the selected view mode. The backend sender prepares payloads
-at the configured debounce interval. The backend creates or updates the room corresponding to the device identity. The
-dashboard receives the room list, subscribes to the room, and displays live metrics.
+at the configured debounce interval. The backend creates or updates the room corresponding to the device identity. Web
+or mobile dashboard clients receive the room list, subscribe to the room, and display live metrics.
 
 The expected operator-facing state in a normal low-density scene is:
 
@@ -1727,7 +1780,7 @@ The sequence is:
 5. If the timer reaches `hysteresis_time`, the alert becomes active.
 6. The payload reports cell alert state and room alert state.
 7. The backend normalizes alert levels and broadcasts the update.
-8. The dashboard shows the alert message and can trigger audio if enabled.
+8. Dashboard clients show the alert message; the web dashboard can trigger audio if enabled.
 
 This sequence demonstrates why smoothing and timers exist. A single noisy frame should not immediately trigger a
 critical alert. Persistent density should.
@@ -1739,9 +1792,9 @@ connect and reconnect when request sending is enabled. If a payload is ready whi
 sender logs a skip message rather than stopping the monitor.
 
 This design separates local safety monitoring from remote dashboard availability. A local operator can still view the
-OpenCV monitor. The remote dashboard, however, will not receive updates until the backend connection is restored. This
-behavior is appropriate for resilience, but a production deployment should show clear backend connection status to the
-operator.
+OpenCV monitor. Remote dashboard clients, however, will not receive updates until the backend connection is restored.
+This behavior is appropriate for resilience, but a production deployment should show clear backend connection status to
+the operator.
 
 ### 7.14 End-to-End Scenario: Invalid Backend Payload
 
@@ -1772,8 +1825,13 @@ The React frontend marks the gateway offline when the WebSocket closes and sched
 This behavior is implemented in the main WebSocket effect in `frontend/src/App.jsx`. When the connection opens again,
 the dashboard sends a list request and can resubscribe based on its room-selection behavior.
 
-This is important because WebSocket connections can close due to network changes, backend restarts, browser sleep, or
-deployment reloads. A live dashboard should attempt recovery without requiring a page refresh.
+The birdsEye mobile client follows the same operational idea in `DashboardStore.kt`. It runs a coroutine connection
+loop,
+marks the state disconnected when the session ends, delays for five seconds, and then attempts to connect again. If a
+room is already selected, it sends a subscribe action after reconnecting.
+
+This is important because WebSocket connections can close due to network changes, backend restarts, browser or device
+sleep, or deployment reloads. A live dashboard should attempt recovery without requiring a page refresh.
 
 ### 7.16 Implementation Mapping to Original Problem
 
@@ -1789,7 +1847,7 @@ concrete module:
 | Estimate local crowding   | Occupancy grid and polygon intersections                             |
 | Reduce noisy alerts       | EMA smoothing and hysteresis timers                                  |
 | Inform local operator     | OpenCV visualization and audio alert                                 |
-| Inform remote operator    | WebSocket backend and React dashboard                                |
+| Inform remote operator    | WebSocket backend, React dashboard, and birdsEye Android/iOS clients |
 | Control usage             | Local license validation                                             |
 
 ### 7.17 Data Flow Across Modules
@@ -1807,7 +1865,7 @@ Frame
   -> Local visualization
   -> Monitoring payload
   -> Backend room update
-  -> Dashboard visual state
+  -> Web/mobile dashboard visual state
 ```
 
 Each transformation reduces or restructures information. The raw frame contains visual data. Detections reduce it to
@@ -1818,7 +1876,8 @@ density. Alerts convert density to operator-priority state.
 
 The control flow is different from data flow. The Python monitor controls frame processing. The WebSocket sender
 controls connection and debounce timing. The backend controls room registry and dashboard broadcasting. The frontend
-controls room selection and UI rendering. These control loops operate independently but communicate through payloads.
+and mobile `DashboardStore` control room selection and UI rendering. These control loops operate independently but
+communicate through payloads.
 
 This distributed control structure is useful because a slow dashboard does not directly stop local frame processing.
 Similarly, the Python monitor does not need to know how many dashboard clients are connected. The backend mediates that
@@ -1883,46 +1942,50 @@ The backend is configured to listen on port `9990`. A local deployment workflow 
 1. Start the Spring Boot backend.
 2. Confirm `/ws-raw` and `/ws-dashboard` are available.
 3. Configure the Python client WebSocket URL to the backend raw endpoint.
-4. Configure the frontend dashboard WebSocket URL to the dashboard endpoint.
+4. Configure web or mobile dashboard clients to use the dashboard endpoint.
 5. Start a Python monitor and send payloads.
-6. Open the dashboard and verify that a room appears.
+6. Open the React dashboard or birdsEye mobile client and verify that a room appears.
 
 For the public deployment reflected in configuration, the raw endpoint is `wss://stamped.poulastaa.dev/ws-raw` and the
 dashboard endpoint is `wss://stamped.poulastaa.dev/ws-dashboard`. Local development may instead use
 `ws://localhost:9990/ws-raw` and `ws://localhost:9990/ws-dashboard`.
 
-### 7.23 Dashboard Operation Workflow
+### 7.23 Dashboard Client Operation Workflow
 
-The dashboard workflow is:
+The dashboard client workflow is:
 
-1. Open the frontend application.
-2. Allow or keep muted the critical siren audio prompt.
+1. Open the React frontend application or birdsEye Android/iOS app.
+2. If using the web dashboard, allow or keep muted the critical siren audio prompt.
 3. Wait for WebSocket gateway connection.
-4. Select a room from the sidebar.
+4. Select a room from the sidebar or mobile room list.
 5. Observe total occupancy, average density, room risk, and processing rate.
 6. Inspect the radar scope and density grid.
 7. Select a tracked person if detailed track information is needed.
 8. Respond to warning or critical alerts according to operational policy.
 
 The dashboard does not currently define the operational policy. It only presents telemetry. The policy for what to do
-when a cell becomes warning or critical must be defined by the organization using the system.
+when a cell becomes warning or critical must be defined by the organization using the system. The birdsEye mobile client
+is especially useful for portable viewing, but it should still be treated as a telemetry display rather than an
+emergency
+procedure system.
 
 ### 7.24 Validation Workflow Proposed for Project Evaluation
 
 Although the source includes limited automated testing, a master-level project should describe how the system could be
 validated. A practical validation workflow would include:
 
-| Validation target   | Suggested method                                                        |
-|---------------------|-------------------------------------------------------------------------|
-| Camera capture      | Verify camera opens and produces non-black frames                       |
-| Calibration         | Place markers at known floor points and compare projected positions     |
-| Detection           | Use labeled video frames to calculate precision and recall              |
-| Tracking            | Count ID switches and lost tracks in short test videos                  |
-| Occupancy           | Compare cell counts against manually annotated occupancy                |
-| Alert timing        | Simulate sustained overcapacity and measure trigger delay               |
-| WebSocket delivery  | Send sample payloads and verify backend acceptance and dashboard update |
-| Dashboard rendering | Test rooms with different payload states: normal, warning, critical     |
-| License behavior    | Test valid, expired, wrong-machine, and corrupted license files         |
+| Validation target   | Suggested method                                                         |
+|---------------------|--------------------------------------------------------------------------|
+| Camera capture      | Verify camera opens and produces non-black frames                        |
+| Calibration         | Place markers at known floor points and compare projected positions      |
+| Detection           | Use labeled video frames to calculate precision and recall               |
+| Tracking            | Count ID switches and lost tracks in short test videos                   |
+| Occupancy           | Compare cell counts against manually annotated occupancy                 |
+| Alert timing        | Simulate sustained overcapacity and measure trigger delay                |
+| WebSocket delivery  | Send sample payloads and verify backend acceptance and dashboard update  |
+| Dashboard rendering | Test rooms with different payload states: normal, warning, critical      |
+| Mobile dashboard    | Build Android/iOS clients and verify room list, subscription, and render |
+| License behavior    | Test valid, expired, wrong-machine, and corrupted license files          |
 
 This validation workflow is proposed because the current source does not provide full empirical results.
 
@@ -1930,17 +1993,18 @@ This validation workflow is proposed because the current source does not provide
 
 The implemented solution transforms an unstructured visual scene into structured operational telemetry. It does this by
 chaining detection, tracking, calibration, occupancy, alerting, and WebSocket messaging. The project therefore solves
-the practical integration problem: how to move from camera frames to a dashboard that can display live crowd-risk state.
+the practical integration problem: how to move from camera frames to web and mobile dashboards that can display live
+crowd-risk state.
 
 **Diagram Placeholder 5: Backend and Dashboard Sequence Diagram**  
 Aspect ratio: `21:9`  
-Suggested replacement: A sequence diagram showing Python client, `/ws-raw`, room registry, `/ws-dashboard`, and React
-dashboard.
+Suggested replacement: A sequence diagram showing Python client, `/ws-raw`, room registry, `/ws-dashboard`, and a
+dashboard client.
 
 Detailed ASCII version:
 
 ```text
-Python Monitor          /ws-raw Handler          RoomRegistry          /ws-dashboard Handler        React Dashboard
+Python Monitor          /ws-raw Handler          RoomRegistry          /ws-dashboard Handler        Dashboard Client
      |                        |                       |                         |                         |
      | monitoring payload     |                       |                         |                         |
      |----------------------->| parse JSON            |                         |                         |
@@ -2215,7 +2279,26 @@ VITE_WS_URL=ws://localhost:9990/ws-dashboard
 This value is consumed by `frontend/src/App.jsx`. If it is not set, the frontend uses the configured public WSS
 endpoint.
 
-### 8.13 Sample Test Case Table
+### 8.13 Sample Mobile Dashboard Commands
+
+The birdsEye client is built from the `birdsEye/` Gradle project. From `birdsEye/`, the Android debug application can be
+assembled with:
+
+```bash
+./gradlew :androidApp:assembleDebug
+```
+
+The shared Android host tests and iOS simulator tests are exposed as Gradle tasks:
+
+```bash
+./gradlew :shared:testAndroidHostTest
+./gradlew :shared:iosSimulatorArm64Test
+```
+
+The iOS application entry point is under `birdsEye/iosApp/`; it is intended to be opened and run from Xcode. These
+commands and locations are based on the current birdsEye README and Gradle project structure.
+
+### 8.14 Sample Test Case Table
 
 The following table describes sample tests that should be included in a final evaluation. They are not all present as
 automated tests in the current source.
@@ -2228,10 +2311,11 @@ automated tests in the current source.
 | Dashboard list        | `{"action":"list"}`                                     | Backend returns `room_list`                          |
 | Dashboard subscribe   | Existing or future `roomId`                             | Backend returns `subscribed`                         |
 | Overcapacity cell     | Payload with critical cell density                      | Dashboard receives `room_update` with critical state |
+| Mobile room list      | birdsEye connected to `/ws-dashboard`                   | Android/iOS client displays rooms from `room_list`   |
 | Camera unavailable    | Invalid camera index                                    | Monitor fails initialization and logs error          |
 | License missing       | No license file                                         | CLI prints license error and machine ID              |
 
-### 8.14 Sample Evaluation Record Template
+### 8.15 Sample Evaluation Record Template
 
 A master report can include an evaluation table like this after running real tests:
 
@@ -2242,26 +2326,28 @@ A master report can include an evaluation table like this after running real tes
 | EXP-03        | Two people in same cell | Webcam 0          | `system_conf.json` | Warning/critical depending capacity | To be measured  | Validate occupancy alert     |
 | EXP-04        | Backend disconnected    | Webcam 0          | local config       | Local monitor continues             | To be measured  | Validate resilience          |
 | EXP-05        | Dashboard reconnect     | Browser dashboard | local backend      | Reconnect after close               | To be measured  | Validate UI recovery         |
+| EXP-06        | Mobile dashboard        | Android/iOS app   | local backend      | Room list and updates render        | To be measured  | Validate birdsEye client     |
 
-### 8.15 Sample Acceptance Criteria
+### 8.16 Sample Acceptance Criteria
 
 The following acceptance criteria are reasonable for the current prototype stage:
 
-| Area        | Acceptance criterion                                                       |
-|-------------|----------------------------------------------------------------------------|
-| Startup     | Application should not enter monitoring loop without valid license         |
-| Detection   | Person detections should produce bounding boxes above configured threshold |
-| Tracking    | Active tracks should persist through short detector gaps within `max_age`  |
-| Calibration | Grid overlay should visually align with selected monitored area            |
-| Occupancy   | Cell counts should increase when tracked people occupy that area           |
-| Alerting    | Alert should trigger only after hysteresis time when over capacity         |
-| WebSocket   | Valid payload should create or update backend room                         |
-| Dashboard   | Subscribed room should update metrics when backend receives new payload    |
+| Area        | Acceptance criterion                                                        |
+|-------------|-----------------------------------------------------------------------------|
+| Startup     | Application should not enter monitoring loop without valid license          |
+| Detection   | Person detections should produce bounding boxes above configured threshold  |
+| Tracking    | Active tracks should persist through short detector gaps within `max_age`   |
+| Calibration | Grid overlay should visually align with selected monitored area             |
+| Occupancy   | Cell counts should increase when tracked people occupy that area            |
+| Alerting    | Alert should trigger only after hysteresis time when over capacity          |
+| WebSocket   | Valid payload should create or update backend room                          |
+| Dashboard   | Subscribed room should update metrics when backend receives new payload     |
+| Mobile app  | Android/iOS client should display room updates through shared protocol code |
 
 These criteria are descriptive. They should be converted into automated and manual test procedures for a final evaluated
 deployment.
 
-### 8.16 Local Visual Output Placeholders
+### 8.17 Local Visual Output Placeholders
 
 **Diagram Placeholder 6: Calibration Screen**  
 Aspect ratio: `4:3`  
@@ -2347,13 +2433,46 @@ Normal graphical version:
 
 ![Dummy web dashboard screenshot placeholder, aspect ratio 16:9](https://placehold.co/1600x900?text=Dummy+Screenshot:+Web+Dashboard+(16:9))
 
+**Diagram Placeholder 9: Mobile Dashboard**
+Aspect ratio: `9:16`
+Suggested replacement: Screenshot of the birdsEye Android or iOS app showing room list, room metrics, density grid, and
+tracked people.
+
+Detailed ASCII version:
+
+```text
++------------------------------+
+| birdsEye              Online |
+| Live crowd dashboard         |
++------------------------------+
+| Gateway: Live | Rooms: 2     |
++------------------------------+
+| Rooms                        |
+| Search rooms, cameras...     |
+| - Entrance Camera  WARNING   |
+| - North Exit       NORMAL    |
++------------------------------+
+| Entrance Camera              |
+| Occupancy 12 | Density 48%   |
+| Risk WARNING | Rate 15 Hz    |
++------------------------------+
+| Position map                 |
+| Density grid                 |
+| Tracked people               |
++------------------------------+
+```
+
+Normal graphical version:
+
+![Dummy mobile dashboard screenshot placeholder, aspect ratio 9:16](https://placehold.co/900x1600?text=Dummy+Screenshot:+Mobile+Dashboard+(9:16))
+
 ## 9. Conclusion / Future Scope of Work
 
 ### 9.1 Conclusion
 
 The Stampede Management project implements a complete prototype-level crowd monitoring pipeline. It captures video,
 detects and tracks people, calibrates image coordinates to a monitored area, estimates grid-based occupancy, produces
-alerts, streams structured payloads to a backend, and presents live data in a web dashboard.
+alerts, streams structured payloads to a backend, and presents live data in web and mobile dashboards.
 
 The source code shows a modular design that separates vision processing, tracking, geometry, occupancy, visualization,
 backend transport, dashboard rendering, configuration, and licensing. This makes the project suitable as a master-level
@@ -2371,6 +2490,7 @@ count, the system computes cell-level occupancy and alert state, which is closer
 | Add persistent backend storage                           | Room history, replay, analytics, and restart recovery require a database                                              |
 | Add backend authentication                               | Raw monitoring clients and dashboard users should be authenticated                                                    |
 | Restrict WebSocket origins                               | Production deployment should not allow all origins                                                                    |
+| Harden mobile dashboards                                 | Android/iOS clients need authentication, notification policy, and real-device validation before production use        |
 | Add end-to-end tests                                     | Detection pipeline, WebSocket delivery, dashboard rendering, and alert logic need automated validation                |
 | Add camera/lens calibration                              | Distortion correction can improve spatial accuracy                                                                    |
 | Add multi-camera support                                 | Larger areas may require multiple cameras and identity fusion                                                         |
@@ -2381,8 +2501,8 @@ count, the system computes cell-level occupancy and alert state, which is closer
 
 Technically, the project demonstrates the integration of multiple software layers into one working monitoring concept.
 The Python application performs the computationally heavy work and produces structured snapshots. The backend acts as a
-lightweight real-time gateway. The frontend turns snapshots into a dashboard view. The configuration and licensing tools
-make the application usable outside a pure development script.
+lightweight real-time gateway. The web frontend and birdsEye mobile client turn snapshots into dashboard views. The
+configuration and licensing tools make the application usable outside a pure development script.
 
 The strongest technical part is the traceable data pipeline. A frame becomes detections, detections become tracks,
 tracks become projected polygons, polygons become grid contributions, grid contributions become smoothed occupancy
@@ -2423,6 +2543,7 @@ Short-term improvements are changes that can be made within the current architec
 | Dynamic frontend grid               | Use payload `rows` and `cols` in `DensityGrid`                         | Supports arbitrary grid sizes             |
 | Add JSON schema validation          | Validate raw payload structure at backend                              | Reduces invalid or partial payload issues |
 | Add frontend error states           | Show missing payload, stale room, and backend reconnect status clearly | Improves operator understanding           |
+| Add mobile dashboard tests          | Cover birdsEye protocol parsing, room selection, and rendering states  | Improves Android/iOS reliability          |
 | Add unit tests for occupancy        | Test capacity, smoothing, and alert timer behavior                     | Increases confidence in core logic        |
 | Add backend handler tests           | Test accepted/rejected payload cases and room updates                  | Improves gateway reliability              |
 
@@ -2469,6 +2590,7 @@ Future evaluation should measure both computer vision performance and system beh
 | End-to-end latency           | Time from frame capture to dashboard update                        |
 | Backend update throughput    | Number of room updates handled per second                          |
 | Dashboard recovery time      | Time to reconnect after WebSocket close                            |
+| Mobile dashboard recovery    | Time for birdsEye to reconnect and resubscribe after network loss  |
 
 ### 9.10 Final Statement
 
@@ -2500,6 +2622,8 @@ vision-based sensing with spatial occupancy reasoning and live operational visua
 | Backend build/runtime     | `backend/build.gradle.kts`, `backend/src/main/resources/application.properties`                                                        |
 | Frontend dashboard        | `frontend/src/App.jsx`, `frontend/src/components/`                                                                                     |
 | Frontend build/runtime    | `frontend/package.json`, `frontend/vite.config.js`                                                                                     |
+| Mobile dashboard clients  | `birdsEye/shared/src/commonMain/kotlin/org/poulastaa/birds_eye/`, `birdsEye/androidApp/`, `birdsEye/iosApp/`                           |
+| Mobile build/runtime      | `birdsEye/build.gradle.kts`, `birdsEye/shared/build.gradle.kts`, `birdsEye/gradle/libs.versions.toml`, `birdsEye/settings.gradle.kts`  |
 | macOS native UI           | `swift-ui/Package.swift`, `swift-ui/Sources/StampedeConfigSwift/`                                                                      |
 
 ### 10.2 Conceptual and Technology References
@@ -2513,6 +2637,7 @@ vision-based sensing with spatial occupancy reasoning and live operational visua
 | Real-time dashboard transport | WebSocket protocol concepts                                |
 | Backend implementation        | Spring Boot WebSocket and Kotlin/JVM concepts              |
 | Frontend implementation       | React and Vite application concepts                        |
+| Mobile client implementation  | Kotlin Multiplatform, Compose Multiplatform, and Ktor      |
 
 ## 11. Appendix (Program Code)
 
@@ -2643,7 +2768,8 @@ val room = rooms.compute(identifier.roomId) { _, existing ->
 
 ### 11.8 Dashboard WebSocket Commands
 
-Source: `DashboardWebSocketHandler.kt` and `frontend/src/App.jsx`
+Source: `DashboardWebSocketHandler.kt`, `frontend/src/App.jsx`, and
+`birdsEye/shared/src/commonMain/kotlin/.../DashboardStore.kt`
 
 ```json
 {
@@ -2677,6 +2803,9 @@ Stampede-Management/
   auth/license_manager.py         Local license validation and activation
   backend/src/main/kotlin/...     Kotlin Spring Boot backend
   frontend/src/...                React dashboard
+  birdsEye/androidApp/...         Android dashboard app entry point
+  birdsEye/iosApp/...             iOS SwiftUI app entry point
+  birdsEye/shared/src/...         Shared Compose dashboard client
   swift-ui/...                    Native macOS SwiftUI configuration app
 ```
 
@@ -2764,18 +2893,18 @@ The monitoring payload is the contract between the Python monitor and backend.
 
 ### 11.13 Backend Message Dictionary
 
-| Message                | Direction                    | Purpose                                  |
-|------------------------|------------------------------|------------------------------------------|
-| Raw monitoring payload | Python client to `/ws-raw`   | Send latest monitoring snapshot          |
-| `accepted` response    | `/ws-raw` to Python client   | Confirm payload was accepted             |
-| `rejected` response    | `/ws-raw` to Python client   | Reject invalid JSON or missing identity  |
-| `list` action          | Dashboard to `/ws-dashboard` | Request current room list                |
-| `subscribe` action     | Dashboard to `/ws-dashboard` | Subscribe to one room                    |
-| `unsubscribe` action   | Dashboard to `/ws-dashboard` | Stop receiving one room's updates        |
-| `room_list`            | `/ws-dashboard` to dashboard | Send available rooms and latest payloads |
-| `subscribed`           | `/ws-dashboard` to dashboard | Confirm room subscription                |
-| `room_update`          | `/ws-dashboard` to dashboard | Send latest data for subscribed room     |
-| `error`                | `/ws-dashboard` to dashboard | Report invalid command or JSON           |
+| Message                | Direction                           | Purpose                                  |
+|------------------------|-------------------------------------|------------------------------------------|
+| Raw monitoring payload | Python client to `/ws-raw`          | Send latest monitoring snapshot          |
+| `accepted` response    | `/ws-raw` to Python client          | Confirm payload was accepted             |
+| `rejected` response    | `/ws-raw` to Python client          | Reject invalid JSON or missing identity  |
+| `list` action          | Dashboard client to `/ws-dashboard` | Request current room list                |
+| `subscribe` action     | Dashboard client to `/ws-dashboard` | Subscribe to one room                    |
+| `unsubscribe` action   | Dashboard client to `/ws-dashboard` | Stop receiving one room's updates        |
+| `room_list`            | `/ws-dashboard` to dashboard client | Send available rooms and latest payloads |
+| `subscribed`           | `/ws-dashboard` to dashboard client | Confirm room subscription                |
+| `room_update`          | `/ws-dashboard` to dashboard client | Send latest data for subscribed room     |
+| `error`                | `/ws-dashboard` to dashboard client | Report invalid command or JSON           |
 
 ### 11.14 Extended Pseudocode: Main Processing Loop
 
@@ -2895,7 +3024,48 @@ on room selection:
     reset selected track
 ```
 
-### 11.18 Proposed Database Schema for Future Work
+### 11.18 Extended Pseudocode: Mobile Dashboard Store Flow
+
+Source: `birdsEye/shared/src/commonMain/kotlin/org/poulastaa/birds_eye/DashboardStore.kt`
+
+```text
+create DashboardStore with default dashboard WebSocket URL
+
+start:
+    if connection job is already active:
+        return
+
+    launch coroutine loop:
+        while active:
+            connect to dashboard WebSocket
+            mark connected
+            send list action
+            if a room is already selected:
+                send subscribe action for that room
+
+            for each incoming text frame:
+                if type is room_list:
+                    parse rooms
+                    if no room is selected and list is not empty:
+                        select first room
+                        send subscribe action
+                if type is room_update:
+                    update or add room snapshot
+                    append current_count to 30-point room history
+                if type is error:
+                    store error message
+
+            mark disconnected when session ends
+            wait five seconds before reconnecting
+
+select room:
+    store selected room ID and clear selected track
+    if connected:
+        unsubscribe previous room
+        subscribe selected room
+```
+
+### 11.19 Proposed Database Schema for Future Work
 
 The current backend does not use a database. If persistence is added later, a possible schema could be:
 
@@ -2910,22 +3080,23 @@ The current backend does not use a database. If persistence is added later, a po
 
 This schema is not implemented. It is included as future design material for a complete report.
 
-### 11.19 Proposed API Contract Improvements
+### 11.20 Proposed API Contract Improvements
 
 The current backend uses WebSocket JSON messages without a formal schema file. Future work can define JSON schemas for:
 
-| Schema                    | Purpose                                      |
-|---------------------------|----------------------------------------------|
-| Monitoring payload schema | Validate Python client payloads              |
-| Dashboard command schema  | Validate list/subscribe/unsubscribe messages |
-| Room list schema          | Document dashboard room response shape       |
-| Room update schema        | Document live update response shape          |
-| Error schema              | Standardize backend error messages           |
+| Schema                    | Purpose                                                   |
+|---------------------------|-----------------------------------------------------------|
+| Monitoring payload schema | Validate Python client payloads                           |
+| Dashboard command schema  | Validate list/subscribe/unsubscribe messages              |
+| Room list schema          | Document dashboard room response shape                    |
+| Room update schema        | Document live update response shape                       |
+| Error schema              | Standardize backend error messages                        |
+| Mobile dashboard schemas  | Keep birdsEye shared models aligned with backend messages |
 
 Formal schemas would make frontend, backend, and Python client development safer. They would also support automated
 contract tests.
 
-### 11.20 Proposed Unit Test List
+### 11.21 Proposed Unit Test List
 
 | Test file area            | Proposed tests                                                                         |
 |---------------------------|----------------------------------------------------------------------------------------|
@@ -2937,9 +3108,10 @@ contract tests.
 | Backend raw handler       | Invalid JSON, missing identity, accepted payload, alert normalization                  |
 | Backend dashboard handler | List, subscribe, unsubscribe, room update broadcast                                    |
 | Frontend components       | Render normal/warning/critical cells, room selection, empty dashboard state            |
+| birdsEye shared client    | Parse room messages, filter rooms, update selected room, maintain history              |
 | License manager           | Valid license, invalid signature, expired license, wrong machine ID                    |
 
-### 11.21 Proposed Manual Test Checklist
+### 11.22 Proposed Manual Test Checklist
 
 | Step                 | Check                                                                     |
 |----------------------|---------------------------------------------------------------------------|
@@ -2953,39 +3125,44 @@ contract tests.
 | Stop backend         | Confirm Python monitor continues locally and sender logs connection issue |
 | Restart backend      | Confirm sender reconnects and dashboard receives updates                  |
 | Change selected room | Confirm dashboard unsubscribe/subscribe behavior                          |
+| Run birdsEye client  | Confirm Android/iOS app receives room list and room updates               |
 
-### 11.22 Known Limitations Checklist
+### 11.23 Known Limitations Checklist
 
-| Limitation                                  | Where visible                      |
-|---------------------------------------------|------------------------------------|
-| Backend state is in memory                  | `RoomRegistry.kt`                  |
-| WebSocket origins allow all                 | `WebSocketConfig.kt`               |
-| Raw payload validation is minimal           | `RawMonitoringWebSocketHandler.kt` |
-| Frontend grid rows/cols are fixed           | `frontend/src/App.jsx`             |
-| Radar coordinate space is fixed             | `RadarScope.jsx`                   |
-| Tracker world positions are image centroids | `trackers.py`                      |
-| Calibration assumes flat rectangle          | `calibration.py`, `geometry.py`    |
-| Full bounding box is projected              | `geometry.py`, `occupancy.py`      |
-| License signing secret is embedded          | `auth/license_manager.py`          |
-| Algorithmic tests are limited               | Source tree inspection             |
+| Limitation                                  | Where visible                       |
+|---------------------------------------------|-------------------------------------|
+| Backend state is in memory                  | `RoomRegistry.kt`                   |
+| WebSocket origins allow all                 | `WebSocketConfig.kt`                |
+| Raw payload validation is minimal           | `RawMonitoringWebSocketHandler.kt`  |
+| Frontend grid rows/cols are fixed           | `frontend/src/App.jsx`              |
+| Radar coordinate space is fixed             | `RadarScope.jsx`                    |
+| Mobile position map uses 800x600 model      | `birdsEye/shared/.../App.kt`        |
+| Mobile dashboard lacks authentication       | `birdsEye/` dashboard WebSocket use |
+| Tracker world positions are image centroids | `trackers.py`                       |
+| Calibration assumes flat rectangle          | `calibration.py`, `geometry.py`     |
+| Full bounding box is projected              | `geometry.py`, `occupancy.py`       |
+| License signing secret is embedded          | `auth/license_manager.py`           |
+| Algorithmic tests are limited               | Source tree inspection              |
 
-### 11.23 Glossary
+### 11.24 Glossary
 
 | Term           | Meaning in this project                                          |
 |----------------|------------------------------------------------------------------|
 | Bounding box   | Rectangle around a detected person in image coordinates          |
+| birdsEye       | Kotlin Multiplatform Android/iOS dashboard client                |
 | Calibration    | Mapping between selected image points and real-world rectangle   |
 | Cell capacity  | Approximate maximum occupants per grid cell                      |
 | Crowd density  | Occupancy relation between people and cell capacity              |
 | DeepSort       | Optional multi-object tracking algorithm used through dependency |
 | EMA            | Exponential moving average used to smooth occupancy counts       |
 | Homography     | Perspective transform matrix between image and world plane       |
+| KMP            | Kotlin Multiplatform shared-code approach used by birdsEye       |
 | Occupancy grid | Grid over calibrated monitored area                              |
 | Room           | Backend logical grouping for one device or MAC identity          |
 | Track          | Persistent representation of a detected person across frames     |
 | WebSocket      | Bidirectional communication channel used for live updates        |
 
-### 11.24 Final Appendix Note
+### 11.25 Final Appendix Note
 
 The appendix intentionally includes both implemented code behavior and proposed evaluation artifacts. Implemented
 behavior is tied to source files. Proposed artifacts are marked as proposed or future work. This distinction is
